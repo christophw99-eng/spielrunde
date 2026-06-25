@@ -1,0 +1,2089 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spielerunde · Klasse 9</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
+  :root {
+    --bg:#0f0f13; --surface:#18181f; --surface2:#22222c; --border:#2e2e3a;
+    --gold:#c9a84c; --gold-dim:#8a6f2e; --gold-glow:rgba(201,168,76,.15);
+    --text:#e8e4d9; --muted:#8a8795;
+    --accent-r:#d05a4a; --accent-b:#4a7ec9; --accent-g:#5aad7a; --accent-p:#9a6cd0;
+    --accent-o:#e07b3a; --accent-pk:#c94a7e;
+    --radius:12px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.65}
+  header{text-align:center;padding:3.5rem 1rem 2rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+  header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% -20%,var(--gold-glow),transparent);pointer-events:none}
+  .eyebrow{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.75rem}
+  header h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:600;color:var(--text);line-height:1.15}
+  header h1 em{font-style:italic;color:var(--gold)}
+  .sub{margin-top:.6rem;color:var(--muted);font-size:.9rem;font-weight:300}
+  .leitfrage{display:inline-flex;align-items:center;gap:.5rem;margin-top:1.4rem;padding:.6rem 1.2rem;border:1px solid var(--gold-dim);border-radius:999px;font-size:.85rem;color:var(--gold);background:var(--gold-glow)}
+  .tab-nav{display:flex;overflow-x:auto;gap:0;border-bottom:1px solid var(--border);background:var(--surface);scrollbar-width:none;position:sticky;top:0;z-index:100}
+  .tab-nav::-webkit-scrollbar{display:none}
+  .tab-btn{flex-shrink:0;padding:1rem 1.3rem;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;transition:color .2s,border-color .2s;white-space:nowrap;display:flex;align-items:center;gap:.4rem}
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .tab-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  main{max-width:820px;margin:0 auto;padding:2rem 1rem 4rem}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+  .spiel-header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.8rem}
+  .spiel-icon{font-size:2.2rem;line-height:1;flex-shrink:0}
+  .spiel-header h2{font-family:'Playfair Display',serif;font-size:1.75rem;font-weight:600;color:var(--text)}
+  .spiel-header p{color:var(--muted);font-size:.88rem;margin-top:.2rem}
+  .info-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.4rem;font-size:.88rem;color:var(--muted)}
+  .info-box strong{color:var(--text)}
+  .info-box ul{margin-top:.5rem;padding-left:1.2rem}
+  .info-box li{margin-top:.25rem}
+  .section{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden;background:var(--surface)}
+  .section-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.3rem;cursor:pointer;user-select:none;gap:.8rem;transition:background .15s}
+  .section-head:hover{background:var(--surface2)}
+  .section-label{display:flex;align-items:center;gap:.65rem;font-weight:500;font-size:.92rem}
+  .badge{font-size:.7rem;padding:.15rem .5rem;border-radius:999px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+  .badge-r{background:rgba(208,90,74,.2);color:var(--accent-r)}
+  .badge-b{background:rgba(74,126,201,.2);color:var(--accent-b)}
+  .badge-g{background:rgba(90,173,122,.2);color:var(--accent-g)}
+  .badge-p{background:rgba(154,108,208,.2);color:var(--accent-p)}
+  .badge-o{background:rgba(224,123,58,.2);color:var(--accent-o)}
+  .badge-pk{background:rgba(201,74,126,.2);color:var(--accent-pk)}
+  .badge-gold{background:var(--gold-glow);color:var(--gold);border:1px solid var(--gold-dim)}
+  .arrow{color:var(--muted);font-size:.75rem;transition:transform .2s;flex-shrink:0}
+  .section.open .arrow{transform:rotate(180deg)}
+  .section-body{display:none;padding:1rem 1.3rem 1.3rem;border-top:1px solid var(--border);font-size:.88rem;color:var(--muted)}
+  .section.open .section-body{display:block}
+  .generator{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;margin-top:1rem}
+  .word-display{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:600;color:var(--text);min-height:3.5rem;display:flex;align-items:center;justify-content:center;letter-spacing:.02em;transition:opacity .15s}
+  .word-display.fade{opacity:0}
+  .word-category{font-size:.75rem;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-top:.3rem;min-height:1rem}
+  .gen-btn{margin-top:1.2rem;padding:.75rem 2rem;background:var(--gold);color:#0f0f13;border:none;border-radius:999px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:background .15s,transform .1s;letter-spacing:.04em}
+  .gen-btn:hover{background:#d4b060}
+  .gen-btn:active{transform:scale(.97)}
+  .gen-btn-sec{margin-top:.7rem;padding:.55rem 1.4rem;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:999px;font-family:'Inter',sans-serif;font-size:.82rem;cursor:pointer;transition:color .15s,border-color .15s}
+  .gen-btn-sec:hover{color:var(--text);border-color:var(--muted)}
+  .team-strip{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;justify-content:center}
+  .team-chip{padding:.35rem .9rem;border-radius:999px;border:1px solid var(--border);font-size:.8rem;cursor:pointer;transition:all .15s;color:var(--muted);background:transparent;font-family:'Inter',sans-serif}
+  .team-chip.selected{border-color:var(--gold);color:var(--gold);background:var(--gold-glow)}
+  .timer-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;text-align:center;margin-top:1rem}
+  .timer-display{font-family:'Playfair Display',serif;font-size:3rem;color:var(--text);letter-spacing:.05em}
+  .timer-display.urgent{color:var(--accent-r)}
+  .timer-btns{display:flex;gap:.6rem;justify-content:center;margin-top:.8rem;flex-wrap:wrap}
+  .timer-set-btn{padding:.35rem .8rem;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+  .timer-set-btn:hover,.timer-set-btn.active-t{border-color:var(--gold);color:var(--gold)}
+  .start-btn{padding:.55rem 1.6rem;border-radius:999px;border:none;background:var(--accent-g);color:#fff;font-size:.88rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
+  .start-btn:hover{background:#4c9a6a}
+  .start-btn.running{background:var(--accent-r)}
+  .score-board{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:1rem}
+  .score-card{flex:1;min-width:110px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;text-align:center}
+  .score-name{font-size:.75rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+  .score-val{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:600;color:var(--text);line-height:1.1}
+  .score-controls{display:flex;gap:.4rem;justify-content:center;margin-top:.4rem}
+  .sc-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:'Inter',sans-serif}
+  .sc-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .canvas-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:1rem;background:#fff;position:relative}
+  #drawCanvas{display:block;cursor:crosshair;touch-action:none}
+  .canvas-tools{display:flex;gap:.5rem;padding:.7rem 1rem;background:var(--surface2);border-top:1px solid var(--border);flex-wrap:wrap;align-items:center}
+  .color-dot{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .15s,transform .1s}
+  .color-dot:hover{transform:scale(1.15)}
+  .color-dot.active{border-color:var(--gold)}
+  .tool-btn{padding:.3rem .8rem;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+  .tool-btn:hover,.tool-btn.active{border-color:var(--gold);color:var(--gold)}
+  .size-wrap{display:flex;align-items:center;gap:.4rem;margin-left:auto}
+  .size-wrap label{font-size:.75rem;color:var(--muted)}
+  .size-wrap input{width:70px;accent-color:var(--gold)}
+  .rule-cards{display:grid;gap:.7rem;margin-top:1rem}
+  .rule-card{display:flex;gap:.8rem;align-items:flex-start;padding:.9rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius)}
+  .rule-num{width:26px;height:26px;border-radius:50%;background:var(--gold-glow);border:1px solid var(--gold-dim);color:var(--gold);font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .rule-text{font-size:.87rem;color:var(--muted)}
+  .rule-text strong{color:var(--text)}
+  .divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;color:var(--muted)}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+  .overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-top:1rem}
+  .overview-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;cursor:pointer;transition:border-color .2s,background .2s}
+  .overview-card:hover{border-color:var(--gold-dim);background:var(--surface2)}
+  .ov-icon{font-size:1.8rem;margin-bottom:.5rem}
+  .ov-title{font-weight:600;font-size:.9rem}
+  .ov-desc{font-size:.78rem;color:var(--muted);margin-top:.2rem}
+  .ov-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.6rem}
+  .ov-tag{font-size:.68rem;padding:.1rem .45rem;border-radius:999px;background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+  footer{text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);font-size:.78rem;color:var(--muted)}
+  .game-variant{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;margin-top:.7rem}
+  .game-variant h4{font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem}
+  .game-variant p{font-size:.84rem;color:var(--muted)}
+
+  /* ── TABU CARD ── */
+  .tabu-card{background:var(--surface2);border:2px solid var(--accent-pk);border-radius:var(--radius);padding:1.4rem;margin-top:1rem;text-align:center;position:relative}
+  .tabu-term{font-family:'Playfair Display',serif;font-size:2rem;font-weight:600;color:var(--text);margin-bottom:.8rem;transition:opacity .15s}
+  .tabu-term.fade{opacity:0}
+  .tabu-words{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+  .tabu-word{background:rgba(201,74,126,.12);border:1px solid rgba(201,74,126,.3);border-radius:8px;padding:.4rem .8rem;font-size:.9rem;color:#e8a0c0;font-weight:500}
+  .tabu-word.crossed{text-decoration:line-through;opacity:.4}
+
+  /* ── OUTBURST CARD ── */
+  .outburst-card{background:var(--surface2);border:2px solid var(--accent-o);border-radius:var(--radius);padding:1.4rem;margin-top:1rem;text-align:center}
+  .outburst-term{font-family:'Playfair Display',serif;font-size:2rem;font-weight:600;color:var(--text);margin-bottom:.8rem;transition:opacity .15s}
+  .outburst-term.fade{opacity:0}
+  .outburst-answers{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:1rem;text-align:left}
+  .outburst-answer{display:flex;align-items:center;gap:.5rem;padding:.4rem .7rem;background:rgba(224,123,58,.1);border:1px solid rgba(224,123,58,.25);border-radius:8px;font-size:.85rem;color:var(--muted);cursor:pointer;transition:all .15s}
+  .outburst-answer:hover{border-color:var(--accent-o);color:var(--text)}
+  .outburst-answer.hit{background:rgba(90,173,122,.18);border-color:var(--accent-g);color:var(--accent-g)}
+  .outburst-answer .ans-check{width:18px;height:18px;border-radius:50%;border:1px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0}
+  .outburst-answer.hit .ans-check::after{content:'✓'}
+  .hit-counter{font-size:1.1rem;color:var(--accent-o);font-weight:600;margin-bottom:.5rem}
+
+  @media(max-width:500px){.word-display{font-size:1.8rem}.timer-display{font-size:2.2rem}.outburst-answers{grid-template-columns:1fr}}
+
+  /* ── TIMER EXPIRED FLASH ── */
+  @keyframes flashRed{0%,100%{background:var(--surface2)}50%{background:rgba(208,90,74,.35)}}
+  .timer-expired{animation:flashRed .6s ease-in-out 4}
+  .word-display.expired,.tabu-term.expired,.outburst-term.expired{color:var(--accent-r)!important;text-shadow:0 0 18px rgba(208,90,74,.6)}
+  .word-category.expired{color:var(--accent-r)!important}
+
+  /* ── ACTIVE TEAM SELECTOR ── */
+  .active-team-bar{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.9rem;padding:.7rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius)}
+  .active-team-bar label{font-size:.78rem;color:var(--muted);white-space:nowrap}
+  .team-chip-active{padding:.35rem .9rem;border-radius:999px;border:1px solid var(--border);font-size:.8rem;cursor:pointer;transition:all .15s;color:var(--muted);background:transparent;font-family:'Inter',sans-serif}
+  .team-chip-active.active{border-color:var(--gold);color:var(--gold);background:var(--gold-glow);font-weight:600}
+
+  /* ── RESULT BUTTONS (richtig/falsch) ── */
+  .result-btns{display:flex;gap:.6rem;justify-content:center;margin-top:.8rem;flex-wrap:wrap}
+  .res-btn{padding:.55rem 1.5rem;border-radius:999px;border:none;font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:transform .1s,box-shadow .15s;letter-spacing:.03em}
+  .res-btn:active{transform:scale(.96)}
+  .res-btn-ok{background:var(--accent-g);color:#fff}
+  .res-btn-ok:hover{box-shadow:0 0 12px rgba(90,173,122,.5)}
+  .res-btn-fail{background:var(--accent-r);color:#fff}
+  .res-btn-fail:hover{box-shadow:0 0 12px rgba(208,90,74,.5)}
+  .res-btn:disabled{opacity:.4;cursor:not-allowed}
+
+  /* ── OUTBURST AUTO-SCORE ── */
+  .ob-team-row{display:flex;align-items:center;gap:.8rem;margin-top:.8rem;flex-wrap:wrap;justify-content:center}
+  .ob-team-row label{font-size:.8rem;color:var(--muted)}
+  /* ── TEAM SETUP ── */
+  .team-setup-panel{background:var(--surface);border:1px solid var(--gold-dim);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.6rem}
+  .team-setup-panel h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem}
+  .team-inputs{display:flex;gap:.7rem;flex-wrap:wrap}
+  .team-input-group{display:flex;flex-direction:column;gap:.3rem;flex:1;min-width:120px}
+  .team-input-group label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .team-input-group input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.45rem .8rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;transition:border-color .15s}
+  .team-input-group input:focus{outline:none;border-color:var(--gold)}
+  .team-input-group input::placeholder{color:var(--muted)}
+  .team-count-row{display:flex;gap:.5rem;align-items:center;margin-bottom:.9rem;flex-wrap:wrap}
+  .team-count-row label{font-size:.8rem;color:var(--muted)}
+  .tc-btn{padding:.3rem .8rem;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+  .tc-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-glow)}
+
+
+  /* ── IMPOSTOR ── */
+  .impostor-setup{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-top:1rem}
+  .player-list{display:flex;flex-direction:column;gap:.5rem;margin:.8rem 0}
+  .player-row{display:flex;align-items:center;gap:.6rem}
+  .player-row input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.4rem .8rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem}
+  .player-row input:focus{outline:none;border-color:var(--gold)}
+  .player-row input::placeholder{color:var(--muted)}
+  .player-remove{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+  .player-remove:hover{border-color:var(--accent-r);color:var(--accent-r)}
+  .imp-card{background:var(--surface2);border:2px solid var(--accent-p);border-radius:var(--radius);padding:1.4rem;text-align:center;margin-top:1rem;position:relative}
+  .imp-card-flip{perspective:600px;cursor:pointer;margin:.6rem auto;width:220px;height:140px}
+  .imp-card-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+  .imp-card-flip.flipped .imp-card-inner{transform:rotateY(180deg)}
+  .imp-card-front,.imp-card-back{position:absolute;inset:0;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .imp-card-front{background:var(--surface);border:2px solid var(--accent-p);color:var(--muted);font-size:.85rem}
+  .imp-card-back{background:var(--surface);border:2px solid var(--gold);transform:rotateY(180deg)}
+  .imp-card-back .imp-role{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:.4rem}
+  .imp-card-back .imp-word{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;color:var(--text)}
+  .imp-card-back.is-impostor{border-color:var(--accent-r)}
+  .imp-card-back.is-impostor .imp-role{color:var(--accent-r)}
+  .imp-card-back.is-impostor .imp-word{color:var(--accent-r)}
+  .imp-card-back.is-civilian .imp-role{color:var(--accent-g)}
+  .imp-card-back.is-civilian .imp-word{color:var(--text)}
+  .imp-turn-indicator{font-size:1rem;font-weight:600;color:var(--gold);margin-bottom:.4rem;min-height:1.4rem}
+  .imp-progress{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;margin:.8rem 0}
+  .imp-pip{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);transition:all .2s}
+  .imp-pip.done{background:var(--surface2);border-color:var(--accent-g);color:var(--accent-g)}
+  .imp-pip.current{border-color:var(--gold);color:var(--gold);box-shadow:0 0 8px var(--gold-glow)}
+  .imp-reveal-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-top:1rem;display:none}
+  .imp-vote-grid{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-top:.6rem}
+  .imp-vote-btn{padding:.4rem 1rem;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.82rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+  .imp-vote-btn:hover{border-color:var(--accent-p);color:var(--accent-p)}
+  .imp-vote-btn.voted{border-color:var(--accent-r);color:var(--accent-r);background:rgba(208,90,74,.12)}
+  .imp-result{font-size:1.1rem;font-weight:700;margin-top:.8rem;min-height:1.4rem;text-align:center}
+  /* ── RÜCKEN-ZEICHNEN ── */
+  .ruecken-card{background:var(--surface2);border:2px solid var(--accent-b);border-radius:var(--radius);padding:1.4rem;margin-top:1rem;text-align:center}
+  .ruecken-svg-wrap{display:flex;align-items:center;justify-content:center;margin:1rem auto;width:220px;height:220px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+  .ruecken-svg-wrap svg{width:200px;height:200px}
+  .ruecken-label{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;color:var(--text);margin-top:.6rem}
+  .ruecken-diff{display:flex;gap:.5rem;justify-content:center;margin-top:.5rem;flex-wrap:wrap}
+  .diff-star{font-size:1.1rem;color:var(--gold-dim)}
+  .diff-star.active{color:var(--gold)}
+  .diff-label{font-size:.75rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:.2rem}
+
+  /* ── CODENAMES ── */
+  .cn-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.4rem;margin-top:1rem}
+  .cn-card{padding:.55rem .3rem;border-radius:8px;text-align:center;font-size:.78rem;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .15s;user-select:none;line-height:1.2}
+  .cn-card.neutral{background:var(--surface2);border-color:var(--border);color:var(--text)}
+  .cn-card.red{background:rgba(208,90,74,.18);border-color:var(--accent-r);color:var(--accent-r)}
+  .cn-card.blue{background:rgba(74,126,201,.18);border-color:var(--accent-b);color:var(--accent-b)}
+  .cn-card.black{background:rgba(30,30,40,.8);border-color:#555;color:#999}
+  .cn-card.bystander{background:rgba(201,168,76,.1);border-color:var(--gold-dim);color:var(--gold)}
+  .cn-card.revealed{opacity:.38;cursor:default;text-decoration:line-through}
+  .cn-card.hidden-role{background:var(--surface2);border-color:var(--border);color:var(--text)}
+  .cn-legend{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem;justify-content:center;font-size:.78rem}
+  .cn-legend span{padding:.2rem .7rem;border-radius:999px;border:1px solid var(--border)}
+  .cn-hint-row{display:flex;gap:.5rem;align-items:center;margin-top:1rem;flex-wrap:wrap;justify-content:center}
+  .cn-hint-row input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.4rem .8rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;width:140px}
+  .cn-hint-row input::placeholder{color:var(--muted)}
+  .cn-roles-toggle{margin-top:.8rem}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">✦ Spielerunde · Klasse 9 ✦</div>
+  <h1>Spiele & <em>Aktionen</em></h1>
+  <p class="sub">Klassenzimmer-Spielrunde · 6 Spiele ohne Vorbereitung</p>
+  <div class="leitfrage">🎯 Wähle ein Spiel und los geht's!</div>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="overview"><span class="tab-dot" style="background:#c9a84c"></span>Übersicht</button>
+  <button class="tab-btn" data-tab="pantomime"><span class="tab-dot" style="background:#d05a4a"></span>🎭 Pantomime</button>
+  <button class="tab-btn" data-tab="maler"><span class="tab-dot" style="background:#4a7ec9"></span>🎨 Montagsmaler</button>
+  <button class="tab-btn" data-tab="outburst"><span class="tab-dot" style="background:#e07b3a"></span>💥 Outburst</button>
+  <button class="tab-btn" data-tab="tabu"><span class="tab-dot" style="background:#c94a7e"></span>🚫 Tabu</button>
+  <button class="tab-btn" data-tab="ruecken"><span class="tab-dot" style="background:#4a7ec9"></span>✏️ Rücken-Zeichnen</button>
+  <button class="tab-btn" data-tab="codenames"><span class="tab-dot" style="background:#5aad7a"></span>🕵️ Codenames</button>
+  <button class="tab-btn" data-tab="ball"><span class="tab-dot" style="background:#e07b3a"></span>🏓 Tischtennisball</button>
+  <button class="tab-btn" data-tab="impostor"><span class="tab-dot" style="background:#9a6cd0"></span>🕵️ Impostor</button>
+  <button class="tab-btn" data-tab="klassenraum"><span class="tab-dot" style="background:#c94a7e"></span>🏫 Klassenraum</button>
+</nav>
+
+<main>
+
+<!-- ── ÜBERSICHT ── -->
+<div class="tab-panel active" id="tab-overview">
+  <div class="spiel-header">
+    <div class="spiel-icon">🎲</div>
+    <div><h2>Spielübersicht</h2><p>Alle 6 Spiele auf einen Blick – klicke auf eine Karte, um direkt zu starten.</p></div>
+  </div>
+  <div class="team-setup-panel">
+    <h3>🏷️ Teams benennen</h3>
+    <div class="team-count-row">
+      <label>Anzahl Teams:</label>
+      <button class="tc-btn active" id="tc2" onclick="setTeamCount(2,this)">2 Teams</button>
+      <button class="tc-btn" id="tc3" onclick="setTeamCount(3,this)">3 Teams</button>
+    </div>
+    <div class="team-inputs" id="team-inputs">
+      <div class="team-input-group"><label>Team 1</label><input id="tname1" type="text" placeholder="z.B. Die Haie" oninput="updateTeamNames()"></div>
+      <div class="team-input-group"><label>Team 2</label><input id="tname2" type="text" placeholder="z.B. Die Adler" oninput="updateTeamNames()"></div>
+      <div class="team-input-group" id="tname3-wrap"><label>Team 3</label><input id="tname3" type="text" placeholder="z.B. Die Wölfe" oninput="updateTeamNames()"></div>
+    </div>
+  </div>
+  <div class="overview-grid">
+    <div class="overview-card" onclick="switchTab('pantomime')">
+      <div class="ov-icon">🎭</div><div class="ov-title">Pantomime</div>
+      <div class="ov-desc">Begriffe stumm darstellen – Mitschüler raten.</div>
+      <div class="ov-tags"><span class="ov-tag">Bewegung</span><span class="ov-tag">Teams</span><span class="ov-tag">Generator</span></div>
+    </div>
+    <div class="overview-card" onclick="switchTab('maler')">
+      <div class="ov-icon">🎨</div><div class="ov-title">Montagsmaler</div>
+      <div class="ov-desc">Begriff zeichnen, Klasse rät – mit Zeichenbrett.</div>
+      <div class="ov-tags"><span class="ov-tag">Zeichnen</span><span class="ov-tag">Teams</span><span class="ov-tag">Generator</span></div>
+    </div>
+    <div class="overview-card" onclick="switchTab('outburst')">
+      <div class="ov-icon">💥</div><div class="ov-title">Outburst</div>
+      <div class="ov-desc">So viele Antworten wie möglich zu einem Oberbegriff nennen.</div>
+      <div class="ov-tags"><span class="ov-tag">Schnell</span><span class="ov-tag">Teams</span><span class="ov-tag">Generator</span></div>
+    </div>
+    <div class="overview-card" onclick="switchTab('tabu')">
+      <div class="ov-icon">🚫</div><div class="ov-title">Tabu</div>
+      <div class="ov-desc">Begriff erklären – ohne die Tabuwörter zu sagen!</div>
+      <div class="ov-tags"><span class="ov-tag">Sprache</span><span class="ov-tag">Teams</span><span class="ov-tag">Generator</span></div>
+    </div>
+    <div class="overview-card" onclick="switchTab('ruecken')">
+      <div class="ov-icon">✏️</div><div class="ov-title">Rücken-Zeichnen</div>
+      <div class="ov-desc">Bild auf den Rücken zeichnen – Vordermann rät.</div>
+      <div class="ov-tags"><span class="ov-tag">Stille Post</span><span class="ov-tag">Teams</span><span class="ov-tag">SVG-Bilder</span></div>
+    </div>
+    <div class="overview-card" onclick="switchTab('codenames')">
+      <div class="ov-icon">🕵️</div><div class="ov-title">Codenames</div>
+      <div class="ov-desc">Hinweise geben, Geheimwörter erraten – ohne das schwarze Feld!</div>
+      <div class="ov-tags"><span class="ov-tag">Strategie</span><span class="ov-tag">Teams</span><span class="ov-tag">Generator</span></div>
+    </div>
+    <div class="overview-card" onclick="switchTab('ball')">
+      <div class="ov-icon">🏓</div><div class="ov-title">Tischtennisball</div>
+      <div class="ov-desc">3 Spielvarianten mit dem Ball.</div>
+      <div class="ov-tags"><span class="ov-tag">Geschick</span><span class="ov-tag">Teamwork</span></div>
+    </div>
+    <div class="overview-card" onclick="switchTab('impostor')">
+      <div class="ov-icon">🕵️</div><div class="ov-title">Impostor</div>
+      <div class="ov-desc">Wer hat das falsche Wort – und merkt es nicht?</div>
+      <div class="ov-tags"><span class="ov-tag">Deduktion</span><span class="ov-tag">Bluff</span><span class="ov-tag">Abstimmung</span></div>
+    </div>
+    <div class="overview-card" onclick="switchTab('klassenraum')">
+      <div class="ov-icon">🏫</div><div class="ov-title">Klassenraum-Spiele</div>
+      <div class="ov-desc">Nur Dinge im Raum – spontan spielbereit.</div>
+      <div class="ov-tags"><span class="ov-tag">Kreativität</span><span class="ov-tag">Rätsel</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PANTOMIME ── -->
+<div class="tab-panel" id="tab-pantomime">
+  <div class="spiel-header">
+    <div class="spiel-icon">🎭</div>
+    <div><h2>Pantomime</h2><p>Einen Begriff stumm darstellen – kein Sprechen, kein Zeigen auf Gegenstände!</p></div>
+  </div>
+  <div class="info-box">
+    <strong>Spielprinzip:</strong> Eine Person zieht einen Begriff und stellt ihn dar. Das Team rät. Wer zuerst richtig rät, bekommt den Punkt.
+    <ul>
+      <li>Kein Sprechen, kein Buchstabieren mit den Händen</li>
+      <li>Auf Gegenstände zeigen ist nicht erlaubt</li>
+      <li>Geräusche mit dem Mund: verboten</li>
+    </ul>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>📊</span> Punktestand</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="score-board">
+        <div class="score-card"><div class="score-name" id="sn-ps1">Team 1</div><div class="score-val" id="ps1">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ps1',-1)">−</button><button class="sc-btn" onclick="changeScore('ps1',1)">+</button></div></div>
+        <div class="score-card"><div class="score-name" id="sn-ps2">Team 2</div><div class="score-val" id="ps2">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ps2',-1)">−</button><button class="sc-btn" onclick="changeScore('ps2',1)">+</button></div></div>
+        <div class="score-card"><div class="score-name" id="sn-ps3">Team 3</div><div class="score-val" id="ps3">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ps3',-1)">−</button><button class="sc-btn" onclick="changeScore('ps3',1)">+</button></div></div>
+      </div>
+      <div style="margin-top:.8rem;text-align:right"><button class="gen-btn-sec" onclick="resetScores(['ps1','ps2','ps3'])">Punkte zurücksetzen</button></div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>⏱️</span> Timer</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="timer-wrap">
+        <div class="timer-display" id="panto-timer">1:00</div>
+        <div class="timer-btns">
+          <button class="timer-set-btn active-t" onclick="setTimer('panto',60,this)">60 s</button>
+          <button class="timer-set-btn" onclick="setTimer('panto',90,this)">90 s</button>
+          <button class="timer-set-btn" onclick="setTimer('panto',120,this)">2 min</button>
+          <button class="start-btn" id="panto-startbtn" onclick="toggleTimer('panto')">▶ Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🎲</span> Begriffsgenerator</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="active-team-bar">
+        <label>Aktives Team:</label>
+        <button class="team-chip-active" id="panto-at-1" onclick="setActiveTeam('panto',1)" data-chip="1"></button>
+        <button class="team-chip-active" id="panto-at-2" onclick="setActiveTeam('panto',2)" data-chip="2"></button>
+        <button class="team-chip-active" id="panto-at-3" onclick="setActiveTeam('panto',3)" data-chip="3"></button>
+      </div>
+      <div class="generator">
+        <div class="word-display" id="panto-word">–</div>
+        <div class="word-category" id="panto-cat"></div>
+        <div class="result-btns">
+          <button class="res-btn res-btn-ok" id="panto-ok" onclick="roundResult('panto',true)" disabled>✓ Richtig erkannt</button>
+          <button class="res-btn res-btn-fail" id="panto-fail" onclick="roundResult('panto',false)" disabled>✗ Nicht gewusst</button>
+        </div>
+        <button class="gen-btn" style="margin-top:.8rem" onclick="generateWord('panto')">🎲 Begriff ziehen</button><br>
+        <button class="gen-btn-sec" onclick="toggleCatSelect()">Kategorie wählen ▾</button>
+        <div id="cat-select" style="display:none;margin-top:.8rem">
+          <div class="team-strip">
+            <button class="team-chip selected" data-cat="all" onclick="selectCat(this,'all')">Alle</button>
+            <button class="team-chip" data-cat="Beruf" onclick="selectCat(this,'Beruf')">Berufe</button>
+            <button class="team-chip" data-cat="Tier" onclick="selectCat(this,'Tier')">Tiere</button>
+            <button class="team-chip" data-cat="Sport" onclick="selectCat(this,'Sport')">Sport</button>
+            <button class="team-chip" data-cat="Film" onclick="selectCat(this,'Film')">Filme</button>
+            <button class="team-chip" data-cat="Aktion" onclick="selectCat(this,'Aktion')">Aktionen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MONTAGSMALER ── -->
+<div class="tab-panel" id="tab-maler">
+  <div class="spiel-header">
+    <div class="spiel-icon">🎨</div>
+    <div><h2>Montagsmaler</h2><p>Einen Begriff zeichnen – keine Buchstaben, Zahlen oder Symbole erlaubt!</p></div>
+  </div>
+  <div class="info-box">
+    <strong>Spielprinzip:</strong> Eine Person bekommt einen Begriff und zeichnet ihn. Wer zuerst richtig rät, bekommt den Punkt.
+    <ul>
+      <li>Keine Buchstaben, Zahlen oder Wortfragmente</li>
+      <li>Symbole (✓, ?, →) sind verboten</li>
+    </ul>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>📊</span> Punktestand</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="score-board">
+        <div class="score-card"><div class="score-name" id="sn-ms1">Team 1</div><div class="score-val" id="ms1">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ms1',-1)">−</button><button class="sc-btn" onclick="changeScore('ms1',1)">+</button></div></div>
+        <div class="score-card"><div class="score-name" id="sn-ms2">Team 2</div><div class="score-val" id="ms2">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ms2',-1)">−</button><button class="sc-btn" onclick="changeScore('ms2',1)">+</button></div></div>
+      </div>
+      <div style="margin-top:.8rem;text-align:right"><button class="gen-btn-sec" onclick="resetScores(['ms1','ms2'])">Punkte zurücksetzen</button></div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>⏱️</span> Timer</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="timer-wrap">
+        <div class="timer-display" id="maler-timer">1:30</div>
+        <div class="timer-btns">
+          <button class="timer-set-btn" onclick="setTimer('maler',60,this)">60 s</button>
+          <button class="timer-set-btn active-t" onclick="setTimer('maler',90,this)">90 s</button>
+          <button class="timer-set-btn" onclick="setTimer('maler',120,this)">2 min</button>
+          <button class="start-btn" id="maler-startbtn" onclick="toggleTimer('maler')">▶ Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🎲</span> Begriffsgenerator</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="active-team-bar">
+        <label>Aktives Team:</label>
+        <button class="team-chip-active" id="maler-at-1" onclick="setActiveTeam('maler',1)" data-chip="1"></button>
+        <button class="team-chip-active" id="maler-at-2" onclick="setActiveTeam('maler',2)" data-chip="2"></button>
+      </div>
+      <div class="generator">
+        <div class="word-display" id="maler-word">–</div>
+        <div class="word-category" id="maler-cat"></div>
+        <div class="result-btns">
+          <button class="res-btn res-btn-ok" id="maler-ok" onclick="roundResult('maler',true)" disabled>✓ Richtig erkannt</button>
+          <button class="res-btn res-btn-fail" id="maler-fail" onclick="roundResult('maler',false)" disabled>✗ Nicht gewusst</button>
+        </div>
+        <button class="gen-btn" style="margin-top:.8rem" onclick="generateWord('maler')">🎲 Begriff ziehen</button>
+      </div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>✏️</span> Digitales Zeichenbrett<span class="badge badge-b">Beamer-Modus</span></div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <p style="margin-bottom:.7rem">Zeichne hier, wenn kein Whiteboard verfügbar ist – am besten auf dem Lehrer-PC am Beamer.</p>
+      <div class="canvas-wrap">
+        <canvas id="drawCanvas" width="760" height="400"></canvas>
+        <div class="canvas-tools">
+          <div class="color-dot active" style="background:#1a1a2e" data-color="#1a1a2e" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#d05a4a" data-color="#d05a4a" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#4a7ec9" data-color="#4a7ec9" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#5aad7a" data-color="#5aad7a" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#c9a84c" data-color="#c9a84c" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#ffffff;border:1px solid #ccc" data-color="#ffffff" onclick="setColor(this)"></div>
+          <button class="tool-btn active" id="pen-btn" onclick="setTool('pen')">✏️ Stift</button>
+          <button class="tool-btn" id="eraser-btn" onclick="setTool('eraser')">🧹 Radierer</button>
+          <button class="tool-btn" onclick="clearCanvas()">🗑️ Löschen</button>
+          <div class="size-wrap"><label>Größe</label><input type="range" id="brushSize" min="2" max="40" value="4" oninput="updateBrush(this.value)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── OUTBURST ── -->
+<div class="tab-panel" id="tab-outburst">
+  <div class="spiel-header">
+    <div class="spiel-icon">💥</div>
+    <div><h2>Outburst</h2><p>Zu einem Oberbegriff so viele passende Antworten wie möglich in der Zeit nennen!</p></div>
+  </div>
+  <div class="info-box">
+    <strong>Spielprinzip:</strong> Ein Team bekommt eine Kategorie (z.B. „Dinge im Kühlschrank"). In 60 Sekunden möglichst viele der vorgegebenen 8 Antworten nennen. Für jede Übereinstimmung gibt es einen Punkt.
+    <ul>
+      <li>Nur ein Team spielt gleichzeitig – das andere schaut zu</li>
+      <li>Reihenfolge der Antworten egal</li>
+      <li>Teilantworten zählen nach Absprache</li>
+    </ul>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>📊</span> Punktestand</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="score-board">
+        <div class="score-card"><div class="score-name" id="sn-ob1">Team 1</div><div class="score-val" id="ob1">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ob1',-1)">−</button><button class="sc-btn" onclick="changeScore('ob1',1)">+</button></div></div>
+        <div class="score-card"><div class="score-name" id="sn-ob2">Team 2</div><div class="score-val" id="ob2">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ob2',-1)">−</button><button class="sc-btn" onclick="changeScore('ob2',1)">+</button></div></div>
+        <div class="score-card"><div class="score-name" id="sn-ob3">Team 3</div><div class="score-val" id="ob3">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ob3',-1)">−</button><button class="sc-btn" onclick="changeScore('ob3',1)">+</button></div></div>
+      </div>
+      <div style="margin-top:.8rem;text-align:right"><button class="gen-btn-sec" onclick="resetScores(['ob1','ob2','ob3'])">Zurücksetzen</button></div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>⏱️</span> Timer</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="timer-wrap">
+        <div class="timer-display" id="outburst-timer">1:00</div>
+        <div class="timer-btns">
+          <button class="timer-set-btn active-t" onclick="setTimer('outburst',60,this)">60 s</button>
+          <button class="timer-set-btn" onclick="setTimer('outburst',90,this)">90 s</button>
+          <button class="start-btn" id="outburst-startbtn" onclick="toggleTimer('outburst')">▶ Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🎲</span> Kategorie-Generator</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="active-team-bar">
+        <label>Aktives Team:</label>
+        <button class="team-chip-active" id="ob-at-1" onclick="setActiveTeam('outburst',1)" data-chip="1"></button>
+        <button class="team-chip-active" id="ob-at-2" onclick="setActiveTeam('outburst',2)" data-chip="2"></button>
+        <button class="team-chip-active" id="ob-at-3" onclick="setActiveTeam('outburst',3)" data-chip="3"></button>
+      </div>
+      <div class="outburst-card">
+        <div class="hit-counter" id="ob-hits">0 / 8 Treffer</div>
+        <div class="outburst-term" id="ob-term">–</div>
+        <div class="outburst-answers" id="ob-answers"></div>
+        <div class="result-btns" style="margin-top:.4rem">
+          <button class="res-btn res-btn-ok" id="ob-score-btn" onclick="outburstAddScore()" disabled>✓ Treffer übernehmen</button>
+        </div>
+        <button class="gen-btn" onclick="generateOutburst()" style="background:var(--accent-o);margin-top:.8rem">💥 Neue Kategorie</button>
+        <br><button class="gen-btn-sec" onclick="resetOutburstHits()">Treffer zurücksetzen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TABU ── -->
+<div class="tab-panel" id="tab-tabu">
+  <div class="spiel-header">
+    <div class="spiel-icon">🚫</div>
+    <div><h2>Tabu</h2><p>Den Begriff erklären, ohne die verbotenen Wörter zu benutzen!</p></div>
+  </div>
+  <div class="info-box">
+    <strong>Spielprinzip:</strong> Eine Person beschreibt den Hauptbegriff – darf dabei aber keines der 5 Tabuwörter sagen. Sagt sie trotzdem eines, zählt die Runde nicht.
+    <ul>
+      <li>Nicht andeuten, buchstabieren oder Wortteile sagen</li>
+      <li>Eine Person aus dem anderen Team kontrolliert die Tabuwörter</li>
+      <li>Pro richtig eratenes Wort: 1 Punkt</li>
+    </ul>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>📊</span> Punktestand</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="score-board">
+        <div class="score-card"><div class="score-name" id="sn-ta1">Team 1</div><div class="score-val" id="ta1">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ta1',-1)">−</button><button class="sc-btn" onclick="changeScore('ta1',1)">+</button></div></div>
+        <div class="score-card"><div class="score-name" id="sn-ta2">Team 2</div><div class="score-val" id="ta2">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('ta2',-1)">−</button><button class="sc-btn" onclick="changeScore('ta2',1)">+</button></div></div>
+      </div>
+      <div style="margin-top:.8rem;text-align:right"><button class="gen-btn-sec" onclick="resetScores(['ta1','ta2'])">Zurücksetzen</button></div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>⏱️</span> Timer</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="timer-wrap">
+        <div class="timer-display" id="tabu-timer">1:00</div>
+        <div class="timer-btns">
+          <button class="timer-set-btn active-t" onclick="setTimer('tabu',60,this)">60 s</button>
+          <button class="timer-set-btn" onclick="setTimer('tabu',90,this)">90 s</button>
+          <button class="timer-set-btn" onclick="setTimer('tabu',120,this)">2 min</button>
+          <button class="start-btn" id="tabu-startbtn" onclick="toggleTimer('tabu')">▶ Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🚫</span> Karten-Generator</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="active-team-bar">
+        <label>Aktives Team:</label>
+        <button class="team-chip-active" id="tabu-at-1" onclick="setActiveTeam('tabu',1)" data-chip="1"></button>
+        <button class="team-chip-active" id="tabu-at-2" onclick="setActiveTeam('tabu',2)" data-chip="2"></button>
+      </div>
+      <div class="tabu-card">
+        <div style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent-pk);margin-bottom:.5rem">ERKLÄRE</div>
+        <div class="tabu-term" id="tabu-term">–</div>
+        <div style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem">OHNE DIESE WÖRTER</div>
+        <div class="tabu-words" id="tabu-words"></div>
+        <div class="result-btns" style="margin-top:.4rem">
+          <button class="res-btn res-btn-ok" id="tabu-ok" onclick="roundResult('tabu',true)" disabled>✓ Richtig</button>
+          <button class="res-btn res-btn-fail" id="tabu-fail" onclick="roundResult('tabu',false)" disabled>✗ Nicht gewusst / Tabu</button>
+        </div>
+        <button class="gen-btn" onclick="generateTabu()" style="background:var(--accent-pk);margin-top:.8rem">🚫 Neue Karte</button>
+        <br><button class="gen-btn-sec" onclick="generateTabu()">Karte überspringen ↷</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TISCHTENNISBALL ── -->
+<div class="tab-panel" id="tab-ball">
+  <div class="spiel-header">
+    <div class="spiel-icon">🏓</div>
+    <div><h2>Tischtennisball-Spiele</h2><p>Drei Spielvarianten – alles, was du brauchst, ist der Ball.</p></div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>⏱️</span> Timer</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="timer-wrap">
+        <div class="timer-display" id="ball-timer">1:00</div>
+        <div class="timer-btns">
+          <button class="timer-set-btn active-t" onclick="setTimer('ball',60,this)">60 s</button>
+          <button class="timer-set-btn" onclick="setTimer('ball',90,this)">90 s</button>
+          <button class="timer-set-btn" onclick="setTimer('ball',180,this)">3 min</button>
+          <button class="start-btn" id="ball-startbtn" onclick="toggleTimer('ball')">▶ Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="divider">Spielvarianten</div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🎯</span> Variante 1: Zahlen-Staffel<span class="badge badge-g">Teamwork</span></div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="rule-cards">
+        <div class="rule-card"><div class="rule-num">1</div><div class="rule-text"><strong>Aufstellung:</strong> Alle in einer Reihe, Schulter an Schulter.</div></div>
+        <div class="rule-card"><div class="rule-num">2</div><div class="rule-text"><strong>Start:</strong> Ball abwechselnd über Kopf und zwischen den Beinen weitergeben.</div></div>
+        <div class="rule-card"><div class="rule-num">3</div><div class="rule-text"><strong>Wertung:</strong> Schnellstes Team gewinnt. Bei Einzelrunden: Wer schafft mehr Durchgänge?</div></div>
+        <div class="rule-card"><div class="rule-num">4</div><div class="rule-text"><strong>Fällt der Ball:</strong> Neu beginnen ab der Person, bei der er gefallen ist.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>💨</span> Variante 2: Puste-Rennen<span class="badge badge-r">Geschick</span></div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="rule-cards">
+        <div class="rule-card"><div class="rule-num">1</div><div class="rule-text"><strong>Strecke:</strong> Parcours mit Büchern als Abgrenzung, Start- und Ziellinie markieren.</div></div>
+        <div class="rule-card"><div class="rule-num">2</div><div class="rule-text"><strong>Regeln:</strong> Nur pusten erlaubt – kein Anfassen, kein Wedeln mit Heften.</div></div>
+        <div class="rule-card"><div class="rule-num">3</div><div class="rule-text"><strong>Staffel-Format:</strong> Ball zurückschieben für den nächsten Spieler.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🎳</span> Variante 3: Klassenraum-Bowling<span class="badge badge-p">Kreativ</span></div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="rule-cards">
+        <div class="rule-card"><div class="rule-num">1</div><div class="rule-text"><strong>Aufbau:</strong> 6–10 Stifte/Flaschen/Radierer als Kegel. Wurfmarke: 2–3 Meter Abstand.</div></div>
+        <div class="rule-card"><div class="rule-num">2</div><div class="rule-text"><strong>Spielzug:</strong> 2 Würfe pro Runde. Ball muss rollen – nicht fliegen.</div></div>
+        <div class="rule-card"><div class="rule-num">3</div><div class="rule-text"><strong>Wertung:</strong> 1 Punkt pro umgeworfenen Gegenstand.</div></div>
+      </div>
+      <div style="margin-top:1rem">
+        <div class="score-board">
+          <div class="score-card"><div class="score-name">Spieler 1</div><div class="score-val" id="bl1">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('bl1',-1)">−</button><button class="sc-btn" onclick="changeScore('bl1',1)">+</button></div></div>
+          <div class="score-card"><div class="score-name">Spieler 2</div><div class="score-val" id="bl2">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('bl2',-1)">−</button><button class="sc-btn" onclick="changeScore('bl2',1)">+</button></div></div>
+          <div class="score-card"><div class="score-name">Spieler 3</div><div class="score-val" id="bl3">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('bl3',-1)">−</button><button class="sc-btn" onclick="changeScore('bl3',1)">+</button></div></div>
+        </div>
+        <div style="margin-top:.6rem;text-align:right"><button class="gen-btn-sec" onclick="resetScores(['bl1','bl2','bl3'])">Zurücksetzen</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── KLASSENRAUM ── -->
+<div class="tab-panel" id="tab-klassenraum">
+  <div class="spiel-header">
+    <div class="spiel-icon">🏫</div>
+    <div><h2>Klassenraum-Spiele</h2><p>Nur mit Dingen, die im Klassenzimmer zu finden sind – spontan und ohne Vorbereitung.</p></div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🔍</span> 20 Fragen – Gegenstand erraten<span class="badge badge-gold">Klassiker</span></div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <p>Eine Person denkt sich einen <strong>Gegenstand im Klassenraum</strong> aus. Die Klasse stellt Ja/Nein-Fragen. Wer ihn in max. 20 Fragen errät, gewinnt.</p>
+      <div class="rule-cards" style="margin-top:.8rem">
+        <div class="rule-card"><div class="rule-num">1</div><div class="rule-text">Nur Ja/Nein-Fragen: „Ist es aus Metall?", „Kann man damit schreiben?"</div></div>
+        <div class="rule-card"><div class="rule-num">2</div><div class="rule-text">Direktes Raten zählt als eine Frage.</div></div>
+      </div>
+      <div class="timer-wrap" style="margin-top:1rem">
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.3rem">FRAGEN VERWENDET</div>
+        <div class="timer-display" id="q-counter">0 / 20</div>
+        <div class="timer-btns">
+          <button class="start-btn" onclick="addQuestion()" style="background:var(--accent-b)">+ Frage</button>
+          <button class="gen-btn-sec" onclick="resetQuestions()">Zurücksetzen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>📝</span> Stille Post – schriftlich<span class="badge badge-b">Kreativ</span></div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <p>Jeder schreibt einen Satz, faltet ihn um, gibt ihn weiter. Der Nächste liest nur den letzten Satz und schreibt weiter. Am Ende vorlesen!</p>
+      <div class="rule-cards" style="margin-top:.8rem">
+        <div class="rule-card"><div class="rule-num">1</div><div class="rule-text"><strong>Material:</strong> 1 Blatt Papier pro Kette, Stift für jede Person.</div></div>
+        <div class="rule-card"><div class="rule-num">2</div><div class="rule-text">Nur den zuletzt geschriebenen Satz lesen. Alles andere umknicken.</div></div>
+        <div class="rule-card"><div class="rule-num">3</div><div class="rule-text">Nach 5–6 Runden auffalten und laut vorlesen.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>👁️</span> Kim-Spiel – Gedächtnis<span class="badge badge-r">Konzentration</span></div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <p>10–15 Gegenstände aufstellen, 1 Minute einprägen, abdecken. Wer kann alle aufschreiben?</p>
+      <div class="timer-wrap" style="margin-top:1rem">
+        <div class="timer-display" id="kim-timer">1:00</div>
+        <div class="timer-btns">
+          <button class="timer-set-btn active-t" onclick="setTimer('kim',60,this)">60 s</button>
+          <button class="timer-set-btn" onclick="setTimer('kim',90,this)">90 s</button>
+          <button class="start-btn" id="kim-startbtn" onclick="toggleTimer('kim')">▶ Merken starten</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── RÜCKEN-ZEICHNEN ── -->
+<div class="tab-panel" id="tab-ruecken">
+  <div class="spiel-header">
+    <div class="spiel-icon">✏️</div>
+    <div><h2>Rücken-Zeichnen</h2><p>Person A zeichnet ein Bild auf den Rücken von Person B – Person B rät, was es ist!</p></div>
+  </div>
+  <div class="info-box">
+    <strong>Spielprinzip:</strong> Alle stehen in einer Reihe. Person hinten schaut auf das Bild und zeichnet es mit dem Finger auf den Rücken der Person vor ihr. Am Ende rät die erste Person.
+    <ul>
+      <li>Nur mit dem Finger zeichnen – kein Reden!</li>
+      <li>Bilder werden von leicht (⭐) bis schwer (⭐⭐⭐) schwieriger</li>
+      <li>Wer richtig rät, gibt das nächste Bild vor</li>
+    </ul>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>📊</span> Punktestand</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="active-team-bar">
+        <label>Aktives Team:</label>
+        <button class="team-chip-active" id="ruecken-at-1" onclick="setActiveTeam('ruecken',1)" data-chip="1"></button>
+        <button class="team-chip-active" id="ruecken-at-2" onclick="setActiveTeam('ruecken',2)" data-chip="2"></button>
+        <button class="team-chip-active" id="ruecken-at-3" onclick="setActiveTeam('ruecken',3)" data-chip="3"></button>
+      </div>
+      <div class="score-board">
+        <div class="score-card"><div class="score-name" id="sn-rb1">Team 1</div><div class="score-val" id="rb1">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('rb1',-1)">−</button><button class="sc-btn" onclick="changeScore('rb1',1)">+</button></div></div>
+        <div class="score-card"><div class="score-name" id="sn-rb2">Team 2</div><div class="score-val" id="rb2">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('rb2',-1)">−</button><button class="sc-btn" onclick="changeScore('rb2',1)">+</button></div></div>
+        <div class="score-card"><div class="score-name" id="sn-rb3">Team 3</div><div class="score-val" id="rb3">0</div><div class="score-controls"><button class="sc-btn" onclick="changeScore('rb3',-1)">−</button><button class="sc-btn" onclick="changeScore('rb3',1)">+</button></div></div>
+      </div>
+      <div style="margin-top:.8rem;text-align:right"><button class="gen-btn-sec" onclick="resetScores(['rb1','rb2','rb3'])">Punkte zurücksetzen</button></div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🎨</span> Bild-Generator</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div style="margin:.5rem 0;display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center">
+        <button class="timer-set-btn active-t" id="rdiff-all" onclick="setRueckenDiff('all',this)">Alle</button>
+        <button class="timer-set-btn" id="rdiff-easy" onclick="setRueckenDiff('easy',this)">⭐ Leicht</button>
+        <button class="timer-set-btn" id="rdiff-medium" onclick="setRueckenDiff('medium',this)">⭐⭐ Mittel</button>
+        <button class="timer-set-btn" id="rdiff-hard" onclick="setRueckenDiff('hard',this)">⭐⭐⭐ Schwer</button>
+      </div>
+      <div class="ruecken-card">
+        <div class="ruecken-svg-wrap" id="ruecken-svg-wrap">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><text x="100" y="110" text-anchor="middle" font-size="14" fill="#aaa">Bild ziehen →</text></svg>
+        </div>
+        <div class="ruecken-label" id="ruecken-label">–</div>
+        <div class="ruecken-diff" id="ruecken-diff-stars"></div>
+        <div class="result-btns" style="margin-top:.8rem">
+          <button class="res-btn res-btn-ok" id="ruecken-ok" onclick="roundResult('ruecken',true)" disabled>✓ Richtig erkannt</button>
+          <button class="res-btn res-btn-fail" id="ruecken-fail" onclick="roundResult('ruecken',false)" disabled>✗ Nicht erkannt</button>
+        </div>
+        <button class="gen-btn" style="margin-top:.8rem;background:var(--accent-b)" onclick="generateRuecken()">✏️ Neues Bild</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CODENAMES ── -->
+<div class="tab-panel" id="tab-codenames">
+  <div class="spiel-header">
+    <div class="spiel-icon">🕵️</div>
+    <div><h2>Codenames</h2><p>Ein Hinweisgeber kennt die Geheimwörter – das Team muss sie erraten!</p></div>
+  </div>
+  <div class="info-box">
+    <strong>Spielprinzip:</strong> 25 Wörter auf dem Feld. Rot und Blau haben je 8–9 Agenten versteckt, 1 schwarzes Feld = sofort verloren, der Rest sind neutrale Passanten.
+    <ul>
+      <li>Hinweisgeber nennt <strong>1 Wort + Zahl</strong> (z.B. „Tier, 3")</li>
+      <li>Das Team deckt Karten auf – stoppt bei Fehler oder nach der Zahl</li>
+      <li>Wer zuerst alle eigenen Agenten findet, gewinnt</li>
+    </ul>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>📊</span> Punktestand</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="score-board">
+        <div class="score-card"><div class="score-name">🔴 Rot</div><div class="score-val" id="cn-red-found" style="color:var(--accent-r)">0</div><div class="score-name" id="cn-red-total" style="margin-top:.2rem">/ 0 Agenten</div></div>
+        <div class="score-card"><div class="score-name">🔵 Blau</div><div class="score-val" id="cn-blue-found" style="color:var(--accent-b)">0</div><div class="score-name" id="cn-blue-total" style="margin-top:.2rem">/ 0 Agenten</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🕵️</span> Spielfeld</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin-bottom:.8rem">
+        <button class="gen-btn" style="background:var(--accent-b)" onclick="generateCodenames()">🔀 Neues Spiel</button>
+        <button class="gen-btn-sec" id="cn-toggle-roles" onclick="toggleCnRoles()">👁️ Rollen anzeigen (Spielleiter)</button>
+      </div>
+      <div class="cn-legend">
+        <span style="background:rgba(208,90,74,.18);border-color:var(--accent-r);color:var(--accent-r)">🔴 Rot-Agent</span>
+        <span style="background:rgba(74,126,201,.18);border-color:var(--accent-b);color:var(--accent-b)">🔵 Blau-Agent</span>
+        <span style="background:rgba(201,168,76,.1);border-color:var(--gold-dim);color:var(--gold)">🟡 Passant</span>
+        <span style="background:rgba(30,30,40,.8);border-color:#555;color:#999">⬛ Attentat</span>
+      </div>
+      <div class="cn-grid" id="cn-grid"></div>
+      <div id="cn-winner" style="text-align:center;font-size:1.3rem;font-weight:700;margin-top:1rem;display:none"></div>
+      <div class="cn-hint-row">
+        <input type="text" id="cn-hint-word" placeholder="Hinweiswort …">
+        <input type="number" id="cn-hint-num" placeholder="Zahl" min="1" max="9" style="width:70px">
+        <button class="start-btn" style="background:var(--accent-b)" onclick="submitCnHint()">Hinweis geben</button>
+      </div>
+      <div id="cn-hint-display" style="text-align:center;margin-top:.6rem;font-size:1rem;color:var(--gold);min-height:1.4rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── IMPOSTOR ── -->
+<div class="tab-panel" id="tab-impostor">
+  <div class="spiel-header">
+    <div class="spiel-icon">🕵️</div>
+    <div><h2>Impostor</h2><p>Alle bekommen dasselbe Wort – außer dem Impostor, der ein ähnliches (oder gar kein) Wort bekommt!</p></div>
+  </div>
+  <div class="info-box">
+    <strong>Spielprinzip:</strong> Jede Person schaut heimlich auf ihre Karte. Reihum beschreibt jeder sein Wort mit <strong>einem Satz</strong> – ohne es zu verraten. Dann wird abgestimmt: Wer ist der Impostor?
+    <ul>
+      <li>Der Impostor versucht unauffällig zu beschreiben, ohne das echte Wort zu kennen</li>
+      <li>Die Gruppe versucht, den Impostor zu entlarven – aber Vorsicht vor falschen Verdächtigungen!</li>
+      <li>Wer richtig entlarvt wird: 0 Punkte. Wer entwischt: 2 Punkte für den Impostor</li>
+      <li>Falscher Verdacht: 1 Punkt für den Impostor</li>
+    </ul>
+  </div>
+
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>👥</span> Spieler & Einstellungen</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="impostor-setup">
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:.6rem">Spielernamen eingeben (min. 3):</div>
+        <div class="player-list" id="imp-player-list"></div>
+        <button class="gen-btn-sec" onclick="addImpPlayer()" style="margin-top:.4rem">+ Spieler hinzufügen</button>
+      </div>
+      <div style="margin-top:.8rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+        <div style="font-size:.8rem;color:var(--muted)">Impostor-Wort:</div>
+        <button class="timer-set-btn active-t" id="imp-mode-similar" onclick="setImpMode('similar',this)">Ähnliches Wort</button>
+        <button class="timer-set-btn" id="imp-mode-none" onclick="setImpMode('none',this)">Kein Wort (schwerer)</button>
+      </div>
+      <div style="margin-top:.8rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+        <div style="font-size:.8rem;color:var(--muted)">Kategorie:</div>
+        <button class="timer-set-btn active-t" id="imp-cat-all" onclick="setImpCat('all',this)">Alle</button>
+        <button class="timer-set-btn" id="imp-cat-alltag" onclick="setImpCat('alltag',this)">Alltag</button>
+        <button class="timer-set-btn" id="imp-cat-natur" onclick="setImpCat('natur',this)">Natur</button>
+        <button class="timer-set-btn" id="imp-cat-essen" onclick="setImpCat('essen',this)">Essen</button>
+        <button class="timer-set-btn" id="imp-cat-sport" onclick="setImpCat('sport',this)">Sport</button>
+        <button class="timer-set-btn" id="imp-cat-orte" onclick="setImpCat('orte',this)">Orte</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>🎴</span> Karten ausgeben</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="imp-card">
+        <div class="imp-turn-indicator" id="imp-turn">Drücke „Neue Runde" zum Starten</div>
+        <div class="imp-progress" id="imp-progress"></div>
+        <div class="imp-card-flip" id="imp-card-flip" onclick="impCardFlip()">
+          <div class="imp-card-inner" id="imp-card-inner">
+            <div class="imp-card-front">
+              <span style="font-size:2rem">🎴</span>
+              <span style="margin-top:.4rem">Antippen zum Aufdecken</span>
+            </div>
+            <div class="imp-card-back" id="imp-card-back">
+              <div class="imp-role" id="imp-role-label">–</div>
+              <div class="imp-word" id="imp-word-label">–</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-btns" style="margin-top:.6rem">
+          <button class="res-btn" id="imp-next-btn" onclick="impNextPlayer()"
+            style="background:var(--accent-p);color:#fff" disabled>Weiter →</button>
+        </div>
+        <button class="gen-btn" style="background:var(--accent-p);margin-top:.8rem" onclick="startImpRound()">🕵️ Neue Runde</button>
+      </div>
+
+      <div class="imp-reveal-panel" id="imp-reveal-panel">
+        <div style="font-size:.8rem;color:var(--muted);text-align:center;margin-bottom:.4rem">ABSTIMMUNG – Wer ist der Impostor?</div>
+        <div class="imp-vote-grid" id="imp-vote-grid"></div>
+        <div class="imp-result" id="imp-result"></div>
+        <div style="text-align:center;margin-top:.8rem" id="imp-reveal-word-row" style="display:none">
+          <span style="font-size:.8rem;color:var(--muted)">Das echte Wort war: </span>
+          <span id="imp-real-word" style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold)"></span>
+          <span style="font-size:.8rem;color:var(--muted)"> · Impostor-Wort: </span>
+          <span id="imp-fake-word" style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--accent-r)"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section open">
+    <div class="section-head" onclick="toggleSection(this)"><div class="section-label"><span>📊</span> Punktestand</div><span class="arrow">▾</span></div>
+    <div class="section-body">
+      <div class="score-board" id="imp-score-board"></div>
+      <div style="margin-top:.8rem;text-align:right"><button class="gen-btn-sec" onclick="resetImpScores()">Zurücksetzen</button></div>
+    </div>
+  </div>
+</div>
+</main>
+<footer>✦ Spielerunde · Klasse 9 · Viel Spaß! ✦</footer>
+
+<script>
+// ── WORTLISTEN ──
+const wordLists = {
+  panto: {
+    all:[
+      // Berufe (20)
+      {w:'Zahnarzt',c:'Beruf'},{w:'Feuerwehrmann',c:'Beruf'},{w:'Pilot',c:'Beruf'},
+      {w:'Bäcker',c:'Beruf'},{w:'Ballerina',c:'Beruf'},{w:'Astronaut',c:'Beruf'},
+      {w:'Zauberer',c:'Beruf'},{w:'Dirigent',c:'Beruf'},{w:'Kellner',c:'Beruf'},
+      {w:'Fotograf',c:'Beruf'},{w:'Boxer',c:'Beruf'},{w:'Fischer',c:'Beruf'},
+      {w:'Gärtner',c:'Beruf'},{w:'Chirurg',c:'Beruf'},{w:'Postbote',c:'Beruf'},
+      {w:'Jongleur',c:'Beruf'},{w:'Richter',c:'Beruf'},{w:'Detektiv',c:'Beruf'},
+      {w:'Mechaniker',c:'Beruf'},{w:'Kapitän',c:'Beruf'},
+      // Tiere (20)
+      {w:'Elefant',c:'Tier'},{w:'Pinguin',c:'Tier'},{w:'Känguru',c:'Tier'},
+      {w:'Schlange',c:'Tier'},{w:'Gorilla',c:'Tier'},{w:'Delfin',c:'Tier'},
+      {w:'Krokodil',c:'Tier'},{w:'Giraffe',c:'Tier'},{w:'Flamingo',c:'Tier'},
+      {w:'Löwe',c:'Tier'},{w:'Bär',c:'Tier'},{w:'Affe',c:'Tier'},
+      {w:'Krabbe',c:'Tier'},{w:'Pferd',c:'Tier'},{w:'Hase',c:'Tier'},
+      {w:'Ente',c:'Tier'},{w:'Adler',c:'Tier'},{w:'Hai',c:'Tier'},
+      {w:'Schildkröte',c:'Tier'},{w:'Fledermaus',c:'Tier'},
+      // Sport (20)
+      {w:'Fußball spielen',c:'Sport'},{w:'Schwimmen',c:'Sport'},{w:'Skifahren',c:'Sport'},
+      {w:'Boxen',c:'Sport'},{w:'Tennis',c:'Sport'},{w:'Surfen',c:'Sport'},
+      {w:'Hochsprung',c:'Sport'},{w:'Fahrrad fahren',c:'Sport'},{w:'Klettern',c:'Sport'},
+      {w:'Gewichtheben',c:'Sport'},{w:'Golf spielen',c:'Sport'},{w:'Reiten',c:'Sport'},
+      {w:'Rudern',c:'Sport'},{w:'Tauchen',c:'Sport'},{w:'Werfen',c:'Sport'},
+      {w:'Turnen',c:'Sport'},{w:'Bogenschießen',c:'Sport'},{w:'Eislaufen',c:'Sport'},
+      {w:'Tischtennis',c:'Sport'},{w:'Fechten',c:'Sport'},
+      // Filme (20)
+      {w:'Titanic',c:'Film'},{w:'Harry Potter',c:'Film'},{w:'König der Löwen',c:'Film'},
+      {w:'Star Wars',c:'Film'},{w:'Jurassic Park',c:'Film'},{w:'Matrix',c:'Film'},
+      {w:'Frozen',c:'Film'},{w:'Shrek',c:'Film'},{w:'Avengers',c:'Film'},
+      {w:'Der Pate',c:'Film'},{w:'Forrest Gump',c:'Film'},{w:'Home Alone',c:'Film'},
+      {w:'Toy Story',c:'Film'},{w:'Titanic',c:'Film'},{w:'Nemo',c:'Film'},
+      {w:'Batman',c:'Film'},{w:'Spider-Man',c:'Film'},{w:'Indiana Jones',c:'Film'},
+      {w:'Rocky',c:'Film'},{w:'Grease',c:'Film'},
+      // Aktionen (20)
+      {w:'Einschlafen',c:'Aktion'},{w:'Kochen',c:'Aktion'},{w:'Telefonieren',c:'Aktion'},
+      {w:'Zähne putzen',c:'Aktion'},{w:'Einkaufen',c:'Aktion'},{w:'Selfie machen',c:'Aktion'},
+      {w:'Schminken',c:'Aktion'},{w:'Rasieren',c:'Aktion'},{w:'Gitarre spielen',c:'Aktion'},
+      {w:'Tauziehen',c:'Aktion'},{w:'Angeln',c:'Aktion'},{w:'Zeitung lesen',c:'Aktion'},
+      {w:'Fahrrad flicken',c:'Aktion'},{w:'Fenster putzen',c:'Aktion'},{w:'Wäsche aufhängen',c:'Aktion'},
+      {w:'Kuchen backen',c:'Aktion'},{w:'Snowboard fahren',c:'Aktion'},{w:'Ballon aufblasen',c:'Aktion'},
+      {w:'Auto waschen',c:'Aktion'},{w:'Schnee schaufeln',c:'Aktion'},
+    ],
+    Beruf:[],Tier:[],Sport:[],Film:[],Aktion:[]
+  },
+  maler:[
+    // Natur (15)
+    {w:'Regenbogen',c:'Natur'},{w:'Tornado',c:'Natur'},{w:'Vulkan',c:'Natur'},
+    {w:'Wasserfall',c:'Natur'},{w:'Blitz',c:'Natur'},{w:'Gletscher',c:'Natur'},
+    {w:'Wüste',c:'Natur'},{w:'Dschungel',c:'Natur'},{w:'Koralle',c:'Natur'},
+    {w:'Gebirge',c:'Natur'},{w:'Mohn',c:'Natur'},{w:'Pilz',c:'Natur'},
+    {w:'Schneeflocke',c:'Natur'},{w:'Wolke',c:'Natur'},{w:'Aurora Borealis',c:'Natur'},
+    // Orte (12)
+    {w:'Iglu',c:'Orte'},{w:'Leuchtturm',c:'Orte'},{w:'Pyramide',c:'Orte'},
+    {w:'Windmühle',c:'Orte'},{w:'Burg',c:'Orte'},{w:'Zelt',c:'Orte'},
+    {w:'Baumhaus',c:'Orte'},{w:'Aquarium',c:'Orte'},{w:'Amphitheater',c:'Orte'},
+    {w:'Höhle',c:'Orte'},{w:'Leuchtturm',c:'Orte'},{w:'Tipi',c:'Orte'},
+    // Fahrzeuge (12)
+    {w:'Schiff',c:'Fahrzeuge'},{w:'Heißluftballon',c:'Fahrzeuge'},{w:'Rakete',c:'Fahrzeuge'},
+    {w:'U-Boot',c:'Fahrzeuge'},{w:'Traktor',c:'Fahrzeuge'},{w:'Dampflokomotive',c:'Fahrzeuge'},
+    {w:'Hubschrauber',c:'Fahrzeuge'},{w:'Gondel',c:'Fahrzeuge'},{w:'Segelboot',c:'Fahrzeuge'},
+    {w:'Skateboard',c:'Fahrzeuge'},{w:'Rikscha',c:'Fahrzeuge'},{w:'Zeppelin',c:'Fahrzeuge'},
+    // Tiere (15)
+    {w:'Elefant',c:'Tiere'},{w:'Pinguin',c:'Tiere'},{w:'Delfin',c:'Tiere'},
+    {w:'Oktopus',c:'Tiere'},{w:'Eule',c:'Tiere'},{w:'Chamäleon',c:'Tiere'},
+    {w:'Schnecke',c:'Tiere'},{w:'Stachelschwein',c:'Tiere'},{w:'Biber',c:'Tiere'},
+    {w:'Qualle',c:'Tiere'},{w:'Seepferdchen',c:'Tiere'},{w:'Faultier',c:'Tiere'},
+    {w:'Ameise',c:'Tiere'},{w:'Pfau',c:'Tiere'},{w:'Nashorn',c:'Tiere'},
+    // Fantasie (10)
+    {w:'Drachen',c:'Fantasie'},{w:'Einhorn',c:'Fantasie'},{w:'Meerjungfrau',c:'Fantasie'},
+    {w:'Zyklop',c:'Fantasie'},{w:'Pegasus',c:'Fantasie'},{w:'Phönix',c:'Fantasie'},
+    {w:'Riese',c:'Fantasie'},{w:'Zentaur',c:'Fantasie'},{w:'Yeti',c:'Fantasie'},
+    {w:'Minotaurus',c:'Fantasie'},
+    // Szenen (10)
+    {w:'Zirkus',c:'Szene'},{w:'Strand',c:'Szene'},{w:'Mondlandung',c:'Szene'},
+    {w:'Marktplatz',c:'Szene'},{w:'Schule',c:'Szene'},{w:'Labor',c:'Szene'},
+    {w:'Konzert',c:'Szene'},{w:'Angeln am See',c:'Szene'},{w:'Picknick',c:'Szene'},
+    {w:'Karnevalszug',c:'Szene'},
+    // Aktionen (10)
+    {w:'Gitarre spielen',c:'Aktion'},{w:'Kuchen backen',c:'Aktion'},{w:'Fußball schießen',c:'Aktion'},
+    {w:'Fallschirm springen',c:'Aktion'},{w:'Surfen',c:'Aktion'},{w:'Jonglieren',c:'Aktion'},
+    {w:'Angeln',c:'Aktion'},{w:'Tauchen',c:'Aktion'},{w:'Klettern',c:'Aktion'},
+    {w:'Floß bauen',c:'Aktion'},
+    // Objekte (16)
+    {w:'Telefon',c:'Objekte'},{w:'Sonnenschirm',c:'Objekte'},{w:'Trompete',c:'Objekte'},
+    {w:'Zahnbürste',c:'Objekte'},{w:'Fallschirm',c:'Objekte'},{w:'Schere',c:'Objekte'},
+    {w:'Kompass',c:'Objekte'},{w:'Fernglas',c:'Objekte'},{w:'Schreibmaschine',c:'Objekte'},
+    {w:'Trommel',c:'Objekte'},{w:'Sanduhr',c:'Objekte'},{w:'Sextant',c:'Objekte'},
+    {w:'Laternenanzünder',c:'Objekte'},{w:'Lasso',c:'Objekte'},{w:'Anker',c:'Objekte'},
+    {w:'Schaukel',c:'Objekte'},
+  ]
+};
+wordLists.panto.all.forEach(item => { if(wordLists.panto[item.c]) wordLists.panto[item.c].push(item); });
+
+// ── OUTBURST KATEGORIEN ──
+const outburstData = [
+  {term:'Dinge im Kühlschrank', answers:['Milch','Butter','Käse','Joghurt','Eier','Saft','Reste','Gemüse']},
+  {term:'Dinge in einem Rucksack', answers:['Heft','Buch','Stift','Lineal','Brotdose','Trinkflasche','Handy','Geldbörse']},
+  {term:'Sportarten mit Ball', answers:['Fußball','Basketball','Tennis','Volleyball','Handball','Rugby','Baseball','Tischtennis']},
+  {term:'Dinge, die piepen', answers:['Mikrowelle','Handy','Wecker','Rauchmelder','Kassiergerät','Backofen','Computer','Spielzeug']},
+  {term:'Berufe im Krankenhaus', answers:['Arzt','Krankenschwester','Pfleger','Chirurg','Radiologe','Apotheker','Sanitäter','Rezeptionistin']},
+  {term:'Sachen auf einem Schreibtisch', answers:['Stift','Papier','Tasse','Lampe','Computer','Buch','Locher','Schere']},
+  {term:'Dinge, die fliegen', answers:['Flugzeug','Vogel','Drachen','Rakete','Insekt','Hubschrauber','Fledermaus','Frisbee']},
+  {term:'Zutaten für eine Pizza', answers:['Teig','Tomatensoße','Käse','Salami','Pilze','Paprika','Zwiebeln','Oregano']},
+  {term:'Länder in Europa', answers:['Deutschland','Frankreich','Spanien','Italien','Polen','Schweden','Österreich','Schweiz']},
+  {term:'Dinge, die leuchten', answers:['Lampe','Sonne','Mond','Feuer','Handy','Kerze','Glühwürmchen','Laser']},
+  {term:'Tiere im Zoo', answers:['Löwe','Elefant','Giraffe','Pinguin','Zebra','Gorilla','Krokodil','Flamingo']},
+  {term:'Dinge in der Schule', answers:['Tafel','Stuhl','Tisch','Heft','Stift','Lehrer','Uhr','Projektor']},
+  {term:'Hobbys', answers:['Lesen','Fußball','Gaming','Kochen','Malen','Musik','Tanzen','Fotografieren']},
+  {term:'Sachen im Badezimmer', answers:['Seife','Shampoo','Handtuch','Zahnbürste','Spiegel','Dusche','WC','Föhn']},
+  {term:'Dinge, die rund sind', answers:['Ball','Rad','Münze','Pizza','Uhr','Apfel','Globus','Teller']},
+  {term:'Wassertiere', answers:['Fisch','Delfin','Hai','Krabbe','Oktopus','Wal','Qualle','Seepferdchen']},
+  {term:'Dinge im Supermarkt', answers:['Brot','Milch','Obst','Gemüse','Fleisch','Joghurt','Wasser','Kasse']},
+  {term:'Dinge, die man werfen kann', answers:['Ball','Stein','Frisbee','Speer','Dart','Schneeball','Münze','Papierknäuel']},
+  {term:'Teile eines Autos', answers:['Reifen','Motor','Lenkrad','Scheinwerfer','Bremse','Spiegel','Sitz','Kofferraum']},
+  {term:'Dinge auf einem Bauernhof', answers:['Kuh','Traktor','Scheune','Hahn','Schwein','Pferd','Heuballen','Zaun']},
+  {term:'Snacks fürs Kino', answers:['Popcorn','Cola','Nachos','Schokoriegel','Gummibärchen','Chips','Eis','Brötchen']},
+  {term:'Dinge, die kalt sind', answers:['Eis','Schnee','Gefrierschrank','Nordpol','Wasser','Nacht','Winter','Metall']},
+  {term:'Dinge in einer Handtasche', answers:['Geldbörse','Schlüssel','Handy','Lippenstift','Spiegel','Taschentuch','Stift','Kaugummi']},
+  {term:'Berufe, die einen Helm tragen', answers:['Feuerwehrmann','Bauarbeiter','Pilot','Astronaut','Motorradfahrer','Soldat','Rennfahrer','Polizist']},
+  {term:'Dinge, die man im Urlaub macht', answers:['Schwimmen','Sonnenbaden','Sightseeing','Essen gehen','Shoppen','Fotos machen','Wandern','Entspannen']},
+  {term:'Dinge, die stinken können', answers:['Käse','Schweiß','Müll','Abgase','Zwiebeln','Käse','Socken','Fisch']},
+  {term:'Zutaten für einen Salat', answers:['Kopfsalat','Tomate','Gurke','Paprika','Oliven','Dressing','Zwiebel','Karotte']},
+  {term:'Dinge, die man im Garten findet', answers:['Blumen','Rasenmäher','Gartenschlauch','Schaufel','Kompost','Vogelbad','Zaunpfahl','Bienen']},
+  {term:'Dinge, die Lärm machen', answers:['Trompete','Bohrmaschine','Hund','Auto','Feuerwerk','Schlagzeug','Kettensäge','Alarm']},
+  {term:'Dinge in einer Küche', answers:['Herd','Kühlschrank','Messer','Topf','Pfanne','Schneidebrett','Mikrowelle','Spülmaschine']},
+  {term:'Sportarten ohne Ball', answers:['Schwimmen','Turnen','Leichtathletik','Boxen','Klettern','Radfahren','Skifahren','Fechten']},
+  {term:'Dinge, die man im Winter trägt', answers:['Mütze','Schal','Handschuhe','Mantel','Stiefel','Pullover','Thermounterwäsche','Jacke']},
+  {term:'Teile des menschlichen Körpers', answers:['Herz','Lunge','Gehirn','Leber','Niere','Magen','Darm','Muskel']},
+  {term:'Dinge, die man im Keller findet', answers:['Werkzeug','Fahrrad','Kellerbox','Waschmaschine','Eingemachtes','Weinflaschen','Skiausrüstung','Kartons']},
+  {term:'Dinge, die schwimmen', answers:['Boot','Ente','Fisch','Baumstamm','Eisberg','Kork','Luftmatratze','Blatt']},
+  {term:'Dinge an einem Strand', answers:['Sand','Muscheln','Sonnenschirm','Liegestuhl','Möwe','Wellen','Eis','Surfbrett']},
+  {term:'Dinge in einem Museum', answers:['Gemälde','Skulptur','Vitrine','Wächter','Audioguide','Fossil','Rüstung','Karte']},
+  {term:'Dinge, die man mit Feuer macht', answers:['Kochen','Grillen','Kerze anzünden','Lagerfeuer','Schmieden','Töpfern','Wärmen','Feuerwerk']},
+  {term:'Teile eines Schulranzens', answers:['Reißverschluss','Fach','Riemen','Trinkhülle','Schlüsselring','Reflektoren','Namensschild','Polster']},
+  {term:'Dinge, die man im Park macht', answers:['Spazieren','Fahrrad fahren','Picknicken','Fußball spielen','Joggen','Eis essen','Hund ausführen','Frisbee']},
+];
+
+// ── TABU KARTEN ──
+const tabuData = [
+  {term:'Fußball', tabu:['Ball','Tor','Spieler','Feld','Schuss']},
+  {term:'Smartphone', tabu:['Handy','Telefon','App','Bildschirm','Internet']},
+  {term:'Urlaub', tabu:['Reise','Strand','Koffer','Hotel','Fliegen']},
+  {term:'Kühlschrank', tabu:['Kalt','Küche','Essen','Tür','Einfrieren']},
+  {term:'Geburtstag', tabu:['Kuchen','Kerzen','Feier','Geschenk','Jahre']},
+  {term:'Schule', tabu:['Lehrer','Klasse','Unterricht','Fach','Noten']},
+  {term:'Hund', tabu:['Tier','Bellen','Leine','Pfote','Haustier']},
+  {term:'Supermarkt', tabu:['Einkaufen','Kasse','Regal','Lebensmittel','Markt']},
+  {term:'Pizza', tabu:['Italien','Teig','Käse','Tomate','Backen']},
+  {term:'Fahrrad', tabu:['Rad','Pedal','Lenker','Fahren','Helm']},
+  {term:'Meer', tabu:['Wasser','Strand','Welle','Fisch','Salz']},
+  {term:'Computer', tabu:['Bildschirm','Tastatur','Internet','Maus','Programm']},
+  {term:'Bibliothek', tabu:['Buch','Lesen','Regal','Ausleihen','Stille']},
+  {term:'Konzert', tabu:['Musik','Bühne','Band','Singen','Publikum']},
+  {term:'Krankenhaus', tabu:['Arzt','Krank','Bett','Operation','Medizin']},
+  {term:'Socke', tabu:['Fuß','Schuh','Kleidung','Tragen','Zehe']},
+  {term:'Schokolade', tabu:['Süß','Kakao','Tafel','Essen','Braun']},
+  {term:'Regen', tabu:['Wasser','Wolke','Nass','Regenschirm','Tropfen']},
+  {term:'Fernsehen', tabu:['TV','Sendung','Bildschirm','Gucken','Kanal']},
+  {term:'Flugzeug', tabu:['Fliegen','Pilot','Flughafen','Reisen','Luft']},
+  {term:'Gitarre', tabu:['Musik','Saiten','Instrument','Spielen','Rock']},
+  {term:'Taschenlampe', tabu:['Licht','Dunkel','Batterie','Leuchten','Camping']},
+  {term:'Rucksack', tabu:['Schule','Tasche','Tragen','Riemen','Packen']},
+  {term:'Zug', tabu:['Schiene','Bahnhof','Fahren','Ticket','Lokomotive']},
+  {term:'Kaffee', tabu:['Trinken','Bohne','Heiß','Tasse','Morgen']},
+  {term:'Schnee', tabu:['Winter','Kalt','Weiß','Skifahren','Schneemann']},
+  {term:'Fußball', tabu:['Ball','Spieler','Tor','Feld','Schuss']},
+  {term:'Kino', tabu:['Film','Popcorn','Leinwand','Ticket','Dunkel']},
+  {term:'Katze', tabu:['Tier','Miauen','Fell','Schnurren','Pfote']},
+  {term:'Auto', tabu:['Fahren','Motor','Reifen','Lenkrad','Straße']},
+  {term:'Fußball', tabu:['Ball','Tor','Spieler','Schuss','Feld']},
+  {term:'Tanzen', tabu:['Musik','Bewegung','Rhythmus','Disco','Partner']},
+  {term:'Kochen', tabu:['Herd','Rezept','Topf','Essen','Küche']},
+  {term:'Schlafen', tabu:['Bett','Nacht','Träumen','Kissen','Müde']},
+  {term:'Lachen', tabu:['Witze','Lustig','Zähne','Laut','Fröhlich']},
+  {term:'Schwimmen', tabu:['Wasser','Pool','Brust','Kraulen','Nass']},
+  {term:'Singen', tabu:['Lied','Stimme','Mikrofon','Melodie','Chor']},
+  {term:'Malen', tabu:['Pinsel','Farbe','Bild','Leinwand','Kunst']},
+  {term:'Lesen', tabu:['Buch','Seite','Wort','Bibliothek','Brille']},
+  {term:'Schreiben', tabu:['Stift','Papier','Brief','Wort','Text']},
+  {term:'Einkaufen', tabu:['Supermarkt','Geld','Kasse','Tüte','Rabatt']},
+  {term:'Reisen', tabu:['Koffer','Urlaub','Flugzeug','Hotel','Ausland']},
+  {term:'Frühstück', tabu:['Morgen','Brot','Kaffee','Ei','Müsli']},
+  {term:'Abendessen', tabu:['Abend','Essen','Tisch','Familie','Hunger']},
+  {term:'Sport treiben', tabu:['Fitness','Schwitzen','Trainieren','Muskel','Verein']},
+  {term:'Lernen', tabu:['Schule','Wiederholen','Prüfung','Verstehen','Wissen']},
+  {term:'Fotografieren', tabu:['Kamera','Bild','Schnappschuss','Blitz','Linse']},
+  {term:'Angeln', tabu:['Fisch','Angel','See','Köder','Geduld']},
+  {term:'Gärtnern', tabu:['Pflanze','Erde','Schaufel','Blumen','Wässern']},
+  {term:'Bauen', tabu:['Haus','Ziegel','Hammer','Architekt','Gerüst']},
+  {term:'Frieren', tabu:['Kalt','Winter','Zittern','Mantel','Eis']},
+  {term:'Träumen', tabu:['Nacht','Schlaf','Fantasie','Vorstellen','Wunsch']},
+  {term:'Streiten', tabu:['Laut','Wut','Argument','Schreien','Versöhnen']},
+  {term:'Flüstern', tabu:['Leise','Geheimnis','Ohr','Sprechen','Still']},
+  {term:'Warten', tabu:['Zeit','Ungeduld','Schlange','Bahnhof','Uhr']},
+  {term:'Rennen', tabu:['Schnell','Beine','Marathon','Laufen','Sportschuhe']},
+  {term:'Klettern', tabu:['Berg','Hände','Seil','Hoch','Wand']},
+  {term:'Backen', tabu:['Kuchen','Ofen','Mehl','Butter','Süß']},
+  {term:'Basteln', tabu:['Schere','Kleben','Kreativ','Papier','Kinderhand']},
+  {term:'Zelt aufbauen', tabu:['Camping','Stangen','Draußen','Schlafsack','Natur']},
+  {term:'Motorrad fahren', tabu:['Helm','Straße','Motor','Lenker','Geschwindigkeit']},
+  {term:'Volleyball spielen', tabu:['Netz','Ball','Aufschlag','Team','Strand']},
+  {term:'Skifahren', tabu:['Schnee','Berg','Stöcke','Piste','Lift']},
+  {term:'Snowboarden', tabu:['Schnee','Brett','Halfpipe','Sprung','Winter']},
+  {term:'Tauchen', tabu:['Wasser','Flasche','Tief','Maske','Flossen']},
+  {term:'Surfen', tabu:['Welle','Brett','Ozean','Balance','Hawaii']},
+  {term:'Kanufahren', tabu:['Paddel','Fluss','Boot','Wasser','Wildwasser']},
+  {term:'Joggen', tabu:['Laufen','Park','Schuhe','Ausdauer','Atmen']},
+  {term:'Yoga machen', tabu:['Dehnen','Matte','Meditation','Pose','Entspannen']},
+  {term:'Schach spielen', tabu:['König','Figur','Brett','Strategie','Turm']},
+  {term:'Karten spielen', tabu:['Deck','Ass','Runden','Blatt','Trumpf']},
+  {term:'Würfeln', tabu:['Zahl','Sechs','Spielen','Zufall','Augen']},
+  {term:'Feuer machen', tabu:['Holz','Streichholz','Lagerfeuer','Camping','Rauch']},
+  {term:'Zelt schlafen', tabu:['Camping','Schlafsack','Natur','Draußen','Zelt']},
+  {term:'Wandern', tabu:['Berg','Natur','Rucksack','Schuhe','Wanderweg']},
+  {term:'Radfahren', tabu:['Fahrrad','Helm','Straße','Pedale','Kette']},
+  {term:'Inline skaten', tabu:['Rollen','Helm','Knieschützer','Fahren','Park']},
+  {term:'Skateboard fahren', tabu:['Brett','Rollen','Trick','Halfpipe','Sturzhelm']},
+  {term:'Trampolin springen', tabu:['Federn','Springen','Hüpfen','Akrobatik','Höhe']},
+  {term:'Drachensteigen', tabu:['Wind','Schnur','Bunt','Fliegen','Himmel']},
+];
+
+let pantoCategory = 'all';
+let currentTabuIdx = -1;
+let currentOutburstIdx = -1;
+
+function generateWord(type){
+  let list, displayId, catId;
+  if(type==='panto'){
+    list = pantoCategory==='all' ? wordLists.panto.all : wordLists.panto[pantoCategory];
+    displayId='panto-word'; catId='panto-cat';
+  } else {
+    list=wordLists.maler; displayId='maler-word'; catId='maler-cat';
+  }
+  if(!list||list.length===0) return;
+  const item=list[Math.floor(Math.random()*list.length)];
+  const el=document.getElementById(displayId);
+  clearExpiredState(type);
+  el.classList.add('fade');
+  setTimeout(()=>{
+    el.textContent=item.w;
+    document.getElementById(catId).textContent='— '+item.c+' —';
+    el.classList.remove('fade');
+    setResultBtnsEnabled(type, activeTeam[type]>0);
+  },150);
+}
+
+function generateOutburst(){
+  let idx;
+  do { idx=Math.floor(Math.random()*outburstData.length); } while(idx===currentOutburstIdx&&outburstData.length>1);
+  currentOutburstIdx=idx;
+  const d=outburstData[idx];
+  const termEl=document.getElementById('ob-term');
+  clearExpiredState('outburst');
+  termEl.classList.add('fade');
+  setTimeout(()=>{
+    termEl.textContent=d.term;
+    termEl.classList.remove('fade');
+    const container=document.getElementById('ob-answers');
+    container.innerHTML='';
+    d.answers.forEach((a)=>{
+      const div=document.createElement('div');
+      div.className='outburst-answer';
+      div.innerHTML='<span class="ans-check"></span><span>'+a+'</span>';
+      div.onclick=function(){
+        this.classList.toggle('hit');
+        updateHits();
+        // auto-advance if all hit
+        const all=document.querySelectorAll('#ob-answers .outburst-answer').length;
+        const hits=document.querySelectorAll('#ob-answers .outburst-answer.hit').length;
+        if(hits>=all){ setTimeout(()=>{ outburstAddScore(); },400); }
+      };
+      container.appendChild(div);
+    });
+    updateHits();
+    const btn=document.getElementById('ob-score-btn');
+    if(btn) btn.disabled=activeTeam['outburst']===0;
+  },150);
+}
+
+function updateHits(){
+  const hits=document.querySelectorAll('#ob-answers .outburst-answer.hit').length;
+  document.getElementById('ob-hits').textContent=hits+' / 8 Treffer';
+}
+
+function resetOutburstHits(){
+  document.querySelectorAll('#ob-answers .outburst-answer').forEach(el=>el.classList.remove('hit'));
+  updateHits();
+}
+
+function generateTabu(){
+  let idx;
+  do { idx=Math.floor(Math.random()*tabuData.length); } while(idx===currentTabuIdx&&tabuData.length>1);
+  currentTabuIdx=idx;
+  const d=tabuData[idx];
+  const termEl=document.getElementById('tabu-term');
+  clearExpiredState('tabu');
+  termEl.classList.add('fade');
+  setTimeout(()=>{
+    termEl.textContent=d.term;
+    termEl.classList.remove('fade');
+    const container=document.getElementById('tabu-words');
+    container.innerHTML='';
+    d.tabu.forEach(w=>{
+      const div=document.createElement('div');
+      div.className='tabu-word';
+      div.textContent='🚫 '+w;
+      container.appendChild(div);
+    });
+    setResultBtnsEnabled('tabu', activeTeam['tabu']>0);
+  },150);
+}
+
+function selectCat(btn,cat){
+  document.querySelectorAll('[data-cat]').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  pantoCategory=cat;
+}
+
+function toggleCatSelect(){
+  const el=document.getElementById('cat-select');
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+// ── TIMER ──
+const timers={};
+const timerDefaults={panto:60,maler:90,outburst:60,tabu:60,ball:60,kim:60};
+function initTimers(){
+  for(const k in timerDefaults){
+    timers[k]={total:timerDefaults[k],remaining:timerDefaults[k],interval:null,running:false};
+    renderTimer(k);
+  }
+}
+initTimers();
+
+function setTimer(key,secs,btn){
+  if(timers[key]&&timers[key].running) return;
+  timers[key].total=secs; timers[key].remaining=secs; renderTimer(key);
+  document.querySelectorAll('[onclick*="setTimer(\''+key+'\'"]').forEach(b=>b.classList.remove('active-t'));
+  if(btn) btn.classList.add('active-t');
+}
+
+function toggleTimer(key){
+  const t=timers[key];
+  if(t.running){
+    clearInterval(t.interval); t.running=false;
+    document.getElementById(key+'-startbtn').textContent='▶ Start';
+    document.getElementById(key+'-startbtn').classList.remove('running');
+  } else {
+    if(t.remaining<=0) t.remaining=t.total;
+    t.running=true;
+    document.getElementById(key+'-startbtn').textContent='⏸ Pause';
+    document.getElementById(key+'-startbtn').classList.add('running');
+    t.interval=setInterval(()=>{
+      t.remaining--; renderTimer(key);
+      if(t.remaining<=0){
+        clearInterval(t.interval); t.running=false;
+        document.getElementById(key+'-startbtn').textContent='▶ Start';
+        document.getElementById(key+'-startbtn').classList.remove('running');
+        onTimerExpired(key);
+      }
+    },1000);
+  }
+}
+
+function renderTimer(key){
+  const t=timers[key];
+  const m=Math.floor(t.remaining/60);
+  const s=String(t.remaining%60).padStart(2,'0');
+  const el=document.getElementById(key+'-timer');
+  if(el){
+    el.textContent=m+':'+s;
+    el.classList.toggle('urgent',t.remaining<=10&&t.remaining>0);
+  }
+}
+
+function onTimerExpired(key){
+  // Flash the timer display
+  const timerEl=document.getElementById(key+'-timer');
+  if(timerEl){ timerEl.classList.add('urgent'); }
+  // Flash the word/card area red
+  const flashTargets={
+    panto:['panto-word','panto-cat'],
+    maler:['maler-word','maler-cat'],
+    tabu:['tabu-term'],
+    outburst:['ob-term'],
+  };
+  if(flashTargets[key]){
+    flashTargets[key].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){ el.classList.add('expired'); }
+    });
+    // Flash the generator/card container
+    const wrapMap={panto:'panto-word',maler:'maler-word',tabu:'tabu-term',outburst:'ob-term'};
+    const refEl=document.getElementById(wrapMap[key]);
+    if(refEl){
+      let wrap=refEl.closest('.generator,.tabu-card,.outburst-card');
+      if(wrap){ wrap.classList.add('timer-expired'); wrap.addEventListener('animationend',()=>wrap.classList.remove('timer-expired'),{once:true}); }
+    }
+    // Timer abgelaufen → keine Punkte mehr vergeben
+    setResultBtnsEnabled('panto',false);
+    setResultBtnsEnabled('maler',false);
+    setResultBtnsEnabled('tabu',false);
+  }
+}
+
+// ── SCORES ──
+function changeScore(id,delta){
+  const el=document.getElementById(id);
+  el.textContent=Math.max(0,(parseInt(el.textContent)||0)+delta);
+}
+function resetScores(ids){ ids.forEach(id=>{ document.getElementById(id).textContent='0'; }); }
+
+// ── ACTIVE TEAM TRACKING ──
+const activeTeam={panto:0,maler:0,tabu:0,outburst:0};
+const scoreIdMap={
+  panto:['ps1','ps2','ps3'],
+  maler:['ms1','ms2'],
+  tabu:['ta1','ta2'],
+  outburst:['ob1','ob2','ob3'],
+  ruecken:['rb1','rb2','rb3']
+};
+const teamLabels={
+  panto:['Team 1','Team 2','Team 3'],
+  maler:['Team A','Team B'],
+  tabu:['Team A','Team B'],
+  outburst:['Team 1','Team 2','Team 3'],
+  ruecken:['Team 1','Team 2','Team 3']
+};
+
+function setActiveTeam(game,num){
+  activeTeam[game]=num;
+  // Update chip highlights
+  [1,2,3].forEach(n=>{
+    const chip=document.getElementById(game+'-at-'+n);
+    if(chip) chip.classList.toggle('active',n===num);
+  });
+  // Enable result buttons if a word is already showing
+  const wordIds={panto:'panto-word',maler:'maler-word',tabu:'tabu-term',outburst:'ob-term'};
+  const wordEl=document.getElementById(wordIds[game]);
+  if(wordEl && wordEl.textContent!=='–'){
+    setResultBtnsEnabled(game,true);
+    if(game==='outburst') document.getElementById('ob-score-btn').disabled=false;
+  }
+}
+
+function setResultBtnsEnabled(game,enabled){
+  const ok=document.getElementById(game+'-ok');
+  const fail=document.getElementById(game+'-fail');
+  if(ok) ok.disabled=!enabled||activeTeam[game]===0;
+  if(fail) fail.disabled=!enabled||activeTeam[game]===0;
+}
+
+function roundResult(game,correct){
+  const team=activeTeam[game];
+  if(!team) return;
+  const ids=scoreIdMap[game];
+  if(correct && ids[team-1]){
+    changeScore(ids[team-1],1);
+  }
+  clearExpiredState(game);
+  setResultBtnsEnabled(game,false);
+  // Auto-advance to next word
+  setTimeout(()=>{
+    if(game==='panto') generateWord('panto');
+    else if(game==='maler') generateWord('maler');
+    else if(game==='tabu') generateTabu();
+    else if(game==='ruecken') generateRuecken();
+  }, 400);
+}
+
+function clearExpiredState(game){
+  ['panto-word','panto-cat','maler-word','maler-cat','tabu-term','ob-term'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('expired');
+  });
+}
+
+// ── OUTBURST AUTO-SCORE ──
+function outburstAddScore(){
+  const team=activeTeam['outburst'];
+  if(!team) return;
+  const hits=document.querySelectorAll('#ob-answers .outburst-answer.hit').length;
+  if(hits>0){
+    const id=scoreIdMap.outburst[team-1];
+    const el=document.getElementById(id);
+    if(el) el.textContent=Math.max(0,(parseInt(el.textContent)||0)+hits);
+  }
+  document.getElementById('ob-score-btn').disabled=true;
+  // check if all answers found → auto next
+  const all=document.querySelectorAll('#ob-answers .outburst-answer').length;
+  if(hits>=all){ setTimeout(()=>generateOutburst(),600); }
+}
+
+function updateOutburstScoreBtn(){
+  const btn=document.getElementById('ob-score-btn');
+  if(btn) btn.disabled=activeTeam['outburst']===0;
+}
+
+// ── 20 FRAGEN ──
+let questionCount=0;
+function addQuestion(){
+  if(questionCount<20){ questionCount++; document.getElementById('q-counter').textContent=questionCount+' / 20'; if(questionCount===20) document.getElementById('q-counter').classList.add('urgent'); }
+}
+function resetQuestions(){ questionCount=0; document.getElementById('q-counter').textContent='0 / 20'; document.getElementById('q-counter').classList.remove('urgent'); }
+
+
+
+// ── TEAM NAMES ──
+let teamNames = ['Team 1','Team 2','Team 3'];
+let teamCount = 2;
+
+// score-name IDs grouped by team index (0=team1, 1=team2, 2=team3)
+const scoreNameIds = [
+  ['sn-ps1','sn-ms1','sn-ob1','sn-ta1','sn-rb1'],
+  ['sn-ps2','sn-ms2','sn-ob2','sn-ta2','sn-rb2'],
+  ['sn-ps3','sn-ob3','sn-rb3']
+];
+// chip ID prefixes
+const chipPrefixes = ['panto','maler','outburst','tabu','ruecken'];
+
+function setTeamCount(n, btn){
+  teamCount = n;
+  document.querySelectorAll('.tc-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // show/hide third team input
+  document.getElementById('tname3-wrap').style.display = n>=3 ? '' : 'none';
+  // show/hide third chips in all games
+  chipPrefixes.forEach(prefix=>{
+    const chip3 = document.getElementById(prefix+'-at-3');
+    if(chip3) chip3.style.display = n>=3 ? '' : 'none';
+  });
+  // hide third score cards
+  ['sn-ps3','sn-ob3','sn-rb3'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.closest('.score-card').style.display = n>=3 ? '' : 'none';
+  });
+  updateTeamNames();
+}
+
+function updateTeamNames(){
+  teamNames = [
+    document.getElementById('tname1').value.trim() || 'Team 1',
+    document.getElementById('tname2').value.trim() || 'Team 2',
+    document.getElementById('tname3').value.trim() || 'Team 3',
+  ];
+  // Update all score-name labels
+  scoreNameIds.forEach((ids, i)=>{
+    ids.forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.textContent = teamNames[i];
+    });
+  });
+  // Update all active-team chips
+  chipPrefixes.forEach(prefix=>{
+    [1,2,3].forEach(n=>{
+      const chip = document.getElementById(prefix+'-at-'+n);
+      if(chip) chip.textContent = teamNames[n-1];
+    });
+  });
+}
+
+function setTeamCount(n, btn){
+  teamCount = n;
+  document.querySelectorAll('.tc-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tname3-wrap').style.display = n>=3 ? '' : 'none';
+  chipPrefixes.forEach(prefix=>{
+    const chip3 = document.getElementById(prefix+'-at-3');
+    if(chip3) chip3.style.display = n>=3 ? '' : 'none';
+  });
+  ['sn-ps3','sn-ob3','sn-rb3'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.closest('.score-card').style.display = n>=3 ? '' : 'none';
+  });
+  updateTeamNames();
+}
+
+// init: hide third team by default, populate chip labels
+document.addEventListener('DOMContentLoaded', ()=>{
+  setTeamCount(2, document.getElementById('tc2'));
+  updateTeamNames();
+});
+
+// ── RÜCKEN-ZEICHNEN ──
+const rueckenData = [
+  // LEICHT ⭐
+  { label:'Tannenbaum', diff:'easy', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <polygon points="100,30 140,90 60,90" stroke-linejoin="round"/>
+    <polygon points="100,60 148,130 52,130" stroke-linejoin="round"/>
+    <polygon points="100,90 155,165 45,165" stroke-linejoin="round"/>
+    <rect x="88" y="165" width="24" height="20" rx="2"/>
+  </svg>` },
+  { label:'Haus', diff:'easy', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <polygon points="100,30 175,90 25,90" stroke-linejoin="round"/>
+    <rect x="35" y="90" width="130" height="90" rx="2"/>
+    <rect x="82" y="130" width="36" height="50" rx="2"/>
+    <rect x="50" y="105" width="28" height="28" rx="2"/>
+    <rect x="122" y="105" width="28" height="28" rx="2"/>
+  </svg>` },
+  { label:'Sonne', diff:'easy', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <circle cx="100" cy="100" r="35"/>
+    <line x1="100" y1="20" x2="100" y2="45"/>
+    <line x1="100" y1="155" x2="100" y2="180"/>
+    <line x1="20" y1="100" x2="45" y2="100"/>
+    <line x1="155" y1="100" x2="180" y2="100"/>
+    <line x1="45" y1="45" x2="62" y2="62"/>
+    <line x1="138" y1="138" x2="155" y2="155"/>
+    <line x1="155" y1="45" x2="138" y2="62"/>
+    <line x1="45" y1="155" x2="62" y2="138"/>
+  </svg>` },
+  { label:'Herz', diff:'easy', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <path d="M100,160 C60,130 20,100 20,65 A40,40 0 0,1 100,55 A40,40 0 0,1 180,65 C180,100 140,130 100,160 Z"/>
+  </svg>` },
+  { label:'Stern', diff:'easy', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <polygon points="100,25 112,72 162,72 122,100 136,147 100,120 64,147 78,100 38,72 88,72" stroke-linejoin="round"/>
+  </svg>` },
+  { label:'Ballon', diff:'easy', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <ellipse cx="100" cy="85" rx="55" ry="65"/>
+    <path d="M80,148 Q100,165 120,148"/>
+    <line x1="100" y1="150" x2="100" y2="185"/>
+  </svg>` },
+  // MITTEL ⭐⭐
+  { label:'Fahrrad', diff:'medium', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <circle cx="55" cy="140" r="35"/>
+    <circle cx="145" cy="140" r="35"/>
+    <polyline points="55,140 90,80 120,80 145,140" stroke-linejoin="round"/>
+    <polyline points="90,80 100,55 120,55" stroke-linejoin="round"/>
+    <line x1="100" y1="55" x2="88" y2="55"/>
+    <line x1="90" y1="80" x2="55" y2="140"/>
+  </svg>` },
+  { label:'Elefant', diff:'medium', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <ellipse cx="105" cy="110" rx="60" ry="50"/>
+    <circle cx="62" cy="72" r="28"/>
+    <path d="M42,90 Q25,110 30,140 Q32,155 42,150 Q52,145 48,130"/>
+    <line x1="60" y1="160" x2="60" y2="185"/>
+    <line x1="80" y1="160" x2="80" y2="185"/>
+    <line x1="125" y1="160" x2="125" y2="185"/>
+    <line x1="145" y1="160" x2="145" y2="185"/>
+    <ellipse cx="52" cy="66" rx="5" ry="3"/>
+    <circle cx="56" cy="63" r="3" fill="#1a1a2e"/>
+    <path d="M68,90 Q75,95 68,100"/>
+  </svg>` },
+  { label:'Gitarre', diff:'medium', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <ellipse cx="100" cy="148" rx="38" ry="32"/>
+    <ellipse cx="100" cy="90" rx="22" ry="18"/>
+    <rect x="94" y="40" width="12" height="20" rx="3"/>
+    <line x1="100" y1="108" x2="100" y2="116"/>
+    <line x1="85" y1="40" x2="115" y2="40" stroke-width="2"/>
+    <line x1="88" y1="38" x2="88" y2="44"/>
+    <line x1="112" y1="38" x2="112" y2="44"/>
+    <circle cx="100" cy="148" r="8"/>
+    <line x1="80" y1="120" x2="80" y2="175" stroke-width="1.5"/>
+    <line x1="120" y1="120" x2="120" y2="175" stroke-width="1.5"/>
+  </svg>` },
+  { label:'Rakete', diff:'medium', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <path d="M100,20 Q130,50 130,100 L130,145 Q115,155 100,160 Q85,155 70,145 L70,100 Q70,50 100,20Z"/>
+    <circle cx="100" cy="85" r="15"/>
+    <polygon points="70,145 50,175 70,165" stroke-linejoin="round"/>
+    <polygon points="130,145 150,175 130,165" stroke-linejoin="round"/>
+    <path d="M80,160 Q100,175 120,160"/>
+  </svg>` },
+  { label:'Fisch', diff:'medium', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="3" fill="none">
+    <ellipse cx="95" cy="100" rx="60" ry="35"/>
+    <polygon points="155,100 185,75 185,125" stroke-linejoin="round"/>
+    <circle cx="62" cy="92" r="7"/>
+    <circle cx="62" cy="92" r="2" fill="#1a1a2e"/>
+    <path d="M75,88 Q80,80 90,82"/>
+    <line x1="95" y1="65" x2="105" y2="85" stroke-width="1.5"/>
+    <line x1="110" y1="65" x2="115" y2="85" stroke-width="1.5"/>
+    <line x1="125" y1="68" x2="127" y2="87" stroke-width="1.5"/>
+  </svg>` },
+  // SCHWER ⭐⭐⭐
+  { label:'Eiffelturm', diff:'hard', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="2.5" fill="none">
+    <line x1="100" y1="18" x2="100" y2="185"/>
+    <polyline points="68,90 100,18 132,90"/>
+    <polyline points="55,140 100,18 145,140"/>
+    <line x1="45" y1="185" x2="155" y2="185"/>
+    <line x1="55" y1="140" x2="145" y2="140"/>
+    <path d="M55,140 Q45,165 45,185"/>
+    <path d="M145,140 Q155,165 155,185"/>
+    <line x1="68" y1="90" x2="132" y2="90"/>
+    <path d="M68,90 Q55,115 55,140"/>
+    <path d="M132,90 Q145,115 145,140"/>
+    <line x1="78" y1="55" x2="122" y2="55" stroke-width="1.5"/>
+    <line x1="62" y1="115" x2="138" y2="115" stroke-width="1.5"/>
+    <line x1="50" y1="162" x2="150" y2="162" stroke-width="1.5"/>
+    <line x1="100" y1="18" x2="100" y2="12"/>
+  </svg>` },
+  { label:'Katze', diff:'hard', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="2.5" fill="none">
+    <ellipse cx="100" cy="120" rx="55" ry="50"/>
+    <circle cx="100" cy="72" r="32"/>
+    <polygon points="72,48 60,20 80,42" stroke-linejoin="round"/>
+    <polygon points="128,48 140,20 120,42" stroke-linejoin="round"/>
+    <circle cx="85" cy="68" r="6"/>
+    <circle cx="115" cy="68" r="6"/>
+    <circle cx="85" cy="68" r="2" fill="#1a1a2e"/>
+    <circle cx="115" cy="68" r="2" fill="#1a1a2e"/>
+    <ellipse cx="100" cy="80" rx="6" ry="4"/>
+    <path d="M94,84 Q100,90 106,84"/>
+    <line x1="75" y1="78" x2="55" y2="72" stroke-width="1.5"/>
+    <line x1="75" y1="81" x2="53" y2="80" stroke-width="1.5"/>
+    <line x1="75" y1="84" x2="55" y2="89" stroke-width="1.5"/>
+    <line x1="125" y1="78" x2="145" y2="72" stroke-width="1.5"/>
+    <line x1="125" y1="81" x2="147" y2="80" stroke-width="1.5"/>
+    <line x1="125" y1="84" x2="145" y2="89" stroke-width="1.5"/>
+    <line x1="60" y1="170" x2="55" y2="185"/>
+    <line x1="140" y1="170" x2="145" y2="185"/>
+    <path d="M120,150 Q145,140 155,130"/>
+  </svg>` },
+  { label:'Leuchtturm', diff:'hard', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="2.5" fill="none">
+    <trapezoid/>
+    <polygon points="82,170 88,50 112,50 118,170" stroke-linejoin="round"/>
+    <rect x="82" y="170" width="36" height="15" rx="2"/>
+    <rect x="84" y="50" width="32" height="18" rx="2"/>
+    <rect x="78" y="40" width="44" height="12" rx="3"/>
+    <line x1="100" y1="40" x2="100" y2="25"/>
+    <line x1="80" y1="100" x2="120" y2="100"/>
+    <line x1="81" y1="130" x2="119" y2="130"/>
+    <path d="M112,59 Q135,55 150,45"/>
+    <path d="M112,62 Q138,68 155,72"/>
+    <path d="M88,59 Q65,55 50,45"/>
+    <path d="M88,62 Q62,68 45,72"/>
+    <line x1="50" y1="185" x2="150" y2="185"/>
+    <path d="M50,185 Q75,175 100,178 Q125,175 150,185"/>
+  </svg>` },
+  { label:'Drachen', diff:'hard', svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" stroke="#1a1a2e" stroke-width="2.5" fill="none">
+    <polygon points="100,25 160,85 100,115 40,85" stroke-linejoin="round"/>
+    <line x1="100" y1="25" x2="100" y2="115"/>
+    <line x1="40" y1="85" x2="160" y2="85"/>
+    <path d="M100,115 Q110,140 105,155 Q115,150 120,160 Q110,165 100,185 Q90,165 80,160 Q85,150 95,155 Q90,140 100,115"/>
+  </svg>` },
+];
+
+let currentRueckenDiff = 'all';
+let lastRueckenIdx = -1;
+
+function setRueckenDiff(diff, btn){
+  currentRueckenDiff = diff;
+  document.querySelectorAll('[id^="rdiff-"]').forEach(b=>b.classList.remove('active-t'));
+  btn.classList.add('active-t');
+}
+
+function generateRuecken(){
+  const pool = currentRueckenDiff==='all' ? rueckenData : rueckenData.filter(d=>d.diff===currentRueckenDiff);
+  if(!pool.length) return;
+  let idx;
+  do { idx=Math.floor(Math.random()*pool.length); } while(idx===lastRueckenIdx && pool.length>1);
+  lastRueckenIdx=idx;
+  const item=pool[idx];
+  clearExpiredState('ruecken');
+  document.getElementById('ruecken-svg-wrap').innerHTML=item.svg;
+  document.getElementById('ruecken-label').textContent=item.label;
+  const stars={'easy':1,'medium':2,'hard':3};
+  const n=stars[item.diff]||1;
+  const starsEl=document.getElementById('ruecken-diff-stars');
+  starsEl.innerHTML='';
+  for(let i=1;i<=3;i++){
+    const s=document.createElement('span');
+    s.className='diff-star'+(i<=n?' active':'');
+    s.textContent='★';
+    starsEl.appendChild(s);
+  }
+  setResultBtnsEnabled('ruecken', activeTeam['ruecken']>0);
+}
+
+// ── CODENAMES ──
+const codenamesWords = [
+  'Apfel','Baum','Brücke','Buch','Computer','Diamant','Drache','Eis',
+  'Elefant','Feuer','Fluss','Geist','Gold','Hammer','Herz','Hund',
+  'Insel','Kamera','Katze','König','Kreuz','Lampe','Licht','Mond',
+  'Musik','Nacht','Palme','Pfeil','Pilot','Planet','Regen','Rose',
+  'Sand','Schiff','Schloss','Schnee','Schwert','Sonne','Spiegel','Stadt',
+  'Stern','Tiger','Turm','Uhr','Vogel','Wasser','Wind','Wolf','Zeit','Zug',
+  'Krone','Auge','Fisch','Berg','Blume','Karte','Schlüssel','Tür','Welle','Schatten',
+  'Anker','Blitz','Drachen','Nebel','Frost','Glas','Hafen','Jade','Käfig','Lava',
+  'Maske','Nadel','Opal','Pferd','Quelle','Rubin','Salz','Tinte','Urwald','Vampir',
+  'Wachs','Xenon','Yacht','Zeder','Asche','Burg','Chaos','Delta','Engel','Falke',
+  'Gabe','Hügel','Iris','Jagd','Kiesel','Löwe','Mauer','Nebel','Otter','Pforte',
+  'Quarz','Rabe','Speer','Thal','Ulme','Vieh','Wüste','Xaver','Yak','Zinn',
+  'Amboss','Bogen','Chor','Dolch','Ernte','Faden','Gipfel','Höhle','Igel','Jäger',
+  'Kelch','Luchs','Mast','Netz','Oval','Pfeil','Ranke','Strom','Taube','Urne',
+];
+
+let cnBoard = [];
+let cnRolesVisible = false;
+let cnCurrentHint = '';
+
+function generateCodenames(){
+  const shuffled = [...codenamesWords].sort(()=>Math.random()-.5).slice(0,25);
+  const roles = [];
+  // 9 red, 8 blue, 7 bystanders, 1 black
+  const startTeam = Math.random()<.5 ? 'red' : 'blue';
+  const counts = {red: startTeam==='red'?9:8, blue: startTeam==='blue'?9:8, bystander:7, black:1};
+  for(const [role,count] of Object.entries(counts)){
+    for(let i=0;i<count;i++) roles.push(role);
+  }
+  roles.sort(()=>Math.random()-.5);
+  cnBoard = shuffled.map((w,i)=>({word:w, role:roles[i], revealed:false}));
+  cnRolesVisible = false;
+  document.getElementById('cn-toggle-roles').textContent='👁️ Rollen anzeigen (Spielleiter)';
+  document.getElementById('cn-winner').style.display='none';
+  document.getElementById('cn-hint-display').textContent='';
+  document.getElementById('cn-red-found').textContent='0';
+  document.getElementById('cn-blue-found').textContent='0';
+  const redTotal=cnBoard.filter(c=>c.role==='red').length;
+  const blueTotal=cnBoard.filter(c=>c.role==='blue').length;
+  document.getElementById('cn-red-total').textContent='/ '+redTotal+' Agenten';
+  document.getElementById('cn-blue-total').textContent='/ '+blueTotal+' Agenten';
+  renderCnGrid();
+}
+
+function renderCnGrid(){
+  const grid=document.getElementById('cn-grid');
+  grid.innerHTML='';
+  cnBoard.forEach((card,i)=>{
+    const div=document.createElement('div');
+    div.className='cn-card';
+    if(card.revealed){
+      div.className='cn-card '+card.role+' revealed';
+    } else if(cnRolesVisible){
+      div.className='cn-card '+card.role;
+    } else {
+      div.className='cn-card hidden-role';
+    }
+    div.textContent=card.word;
+    if(!card.revealed){
+      div.onclick=()=>revealCnCard(i);
+    }
+    grid.appendChild(div);
+  });
+}
+
+function revealCnCard(i){
+  if(cnBoard[i].revealed) return;
+  cnBoard[i].revealed=true;
+  renderCnGrid();
+  updateCnScore();
+  checkCnWinner();
+}
+
+function updateCnScore(){
+  const rf=cnBoard.filter(c=>c.role==='red'&&c.revealed).length;
+  const bf=cnBoard.filter(c=>c.role==='blue'&&c.revealed).length;
+  document.getElementById('cn-red-found').textContent=rf;
+  document.getElementById('cn-blue-found').textContent=bf;
+}
+
+function checkCnWinner(){
+  const blackHit=cnBoard.find(c=>c.role==='black'&&c.revealed);
+  const redTotal=cnBoard.filter(c=>c.role==='red').length;
+  const blueTotal=cnBoard.filter(c=>c.role==='blue').length;
+  const redFound=cnBoard.filter(c=>c.role==='red'&&c.revealed).length;
+  const blueFound=cnBoard.filter(c=>c.role==='blue'&&c.revealed).length;
+  const winEl=document.getElementById('cn-winner');
+  if(blackHit){
+    winEl.innerHTML='⬛ Attentat! Das aktive Team verliert sofort!';
+    winEl.style.color='var(--accent-r)';
+    winEl.style.display='block';
+    cnRolesVisible=true;
+    renderCnGrid();
+  } else if(redFound>=redTotal){
+    winEl.innerHTML='🔴 Rot gewinnt! Alle Agenten gefunden!';
+    winEl.style.color='var(--accent-r)';
+    winEl.style.display='block';
+  } else if(blueFound>=blueTotal){
+    winEl.innerHTML='🔵 Blau gewinnt! Alle Agenten gefunden!';
+    winEl.style.color='var(--accent-b)';
+    winEl.style.display='block';
+  }
+}
+
+function toggleCnRoles(){
+  cnRolesVisible=!cnRolesVisible;
+  document.getElementById('cn-toggle-roles').textContent=cnRolesVisible?'🙈 Rollen verbergen':'👁️ Rollen anzeigen (Spielleiter)';
+  renderCnGrid();
+}
+
+function submitCnHint(){
+  const word=document.getElementById('cn-hint-word').value.trim();
+  const num=document.getElementById('cn-hint-num').value.trim();
+  if(!word) return;
+  document.getElementById('cn-hint-display').textContent='💡 Hinweis: „'+word+'" → '+num+' Wörter';
+  document.getElementById('cn-hint-word').value='';
+  document.getElementById('cn-hint-num').value='';
+}
+
+generateCodenames();
+
+
+// ── IMPOSTOR ──
+const impostorWordPairs = {
+  alltag: [
+    {real:'Zahnbürste', fake:'Kamm'}, {real:'Kissen', fake:'Decke'},
+    {real:'Wecker', fake:'Uhr'}, {real:'Fernbedienung', fake:'Joystick'},
+    {real:'Waschmaschine', fake:'Geschirrspüler'}, {real:'Briefkasten', fake:'Postfach'},
+    {real:'Schere', fake:'Messer'}, {real:'Taschenlampe', fake:'Kerze'},
+    {real:'Kalender', fake:'Notizbuch'}, {real:'Schublade', fake:'Regal'},
+    {real:'Spiegel', fake:'Fensterscheibe'}, {real:'Klingel', fake:'Türknopf'},
+    {real:'Staubsauger', fake:'Besen'}, {real:'Kühlschrank', fake:'Tiefkühltruhe'},
+    {real:'Vorhang', fake:'Jalousie'}, {real:'Mülleimer', fake:'Kompost'},
+  ],
+  natur: [
+    {real:'Regenbogen', fake:'Sonnenuntergang'}, {real:'Blitz', fake:'Donner'},
+    {real:'Vulkan', fake:'Geysir'}, {real:'Ebbe', fake:'Flut'},
+    {real:'Gletscher', fake:'Eisberg'}, {real:'Tornado', fake:'Hurrikan'},
+    {real:'Lawine', fake:'Erdrutsch'}, {real:'Nebel', fake:'Wolke'},
+    {real:'Wasserfall', fake:'Stromschnelle'}, {real:'Höhle', fake:'Tunnel'},
+    {real:'Koralle', fake:'Muschel'}, {real:'Moos', fake:'Flechte'},
+    {real:'Sanddüne', fake:'Hügel'}, {real:'Sumpf', fake:'Moor'},
+    {real:'Tundra', fake:'Steppe'}, {real:'Delta', fake:'Lagune'},
+  ],
+  essen: [
+    {real:'Croissant', fake:'Brötchen'}, {real:'Sushi', fake:'Sashimi'},
+    {real:'Smoothie', fake:'Saft'}, {real:'Fondue', fake:'Raclette'},
+    {real:'Tiramisu', fake:'Panna Cotta'}, {real:'Bagel', fake:'Donut'},
+    {real:'Currywurst', fake:'Bratwurst'}, {real:'Gulasch', fake:'Eintopf'},
+    {real:'Espresso', fake:'Cappuccino'}, {real:'Waffel', fake:'Pfannkuchen'},
+    {real:'Hummus', fake:'Tzatziki'}, {real:'Lasagne', fake:'Moussaka'},
+    {real:'Marmelade', fake:'Honig'}, {real:'Müsli', fake:'Cornflakes'},
+    {real:'Tacos', fake:'Burrito'}, {real:'Churros', fake:'Beignets'},
+  ],
+  sport: [
+    {real:'Surfbrett', fake:'Wakeboard'}, {real:'Fechten', fake:'Karate'},
+    {real:'Triathlon', fake:'Duathlon'}, {real:'Curling', fake:'Boccia'},
+    {real:'Klettern', fake:'Bouldern'}, {real:'Dressur', fake:'Springreiten'},
+    {real:'Biathlon', fake:'Pentathlon'}, {real:'Rodeln', fake:'Bobfahren'},
+    {real:'Trampolinturnen', fake:'Kunstturnen'}, {real:'Wasserball', fake:'Polo'},
+    {real:'Bogenschießen', fake:'Speerwurf'}, {real:'Synchronschwimmen', fake:'Wasserspringen'},
+    {real:'Rollschuhfahren', fake:'Eislaufen'}, {real:'Tischtennis', fake:'Badminton'},
+    {real:'Beachvolleyball', fake:'Volleyball'}, {real:'Squash', fake:'Racquetball'},
+  ],
+  orte: [
+    {real:'Leuchtturm', fake:'Windmühle'},{real:'Iglu', fake:'Tipi'},
+    {real:'Amphitheater', fake:'Zirkuszelt'},{real:'Pyramide', fake:'Mausoleum'},
+    {real:'Fjord', fake:'Bucht'},{real:'Oase', fake:'Brunnen'},
+    {real:'Kathedrale', fake:'Basilika'},{real:'Kaserne', fake:'Festung'},
+    {real:'Marktplatz', fake:'Basar'},{real:'Kasino', fake:'Spielhalle'},
+    {real:'Observatorium', fake:'Planetarium'},{real:'Waisenhaus', fake:'Internat'},
+    {real:'Sauna', fake:'Hammam'},{real:'Aquädukt', fake:'Kanal'},
+    {real:'Friedhof', fake:'Mausoleum'},{real:'Speicher', fake:'Silo'},
+  ],
+};
+// Flatten all for 'all' category
+impostorWordPairs.all = Object.values(impostorWordPairs).flat();
+
+let impPlayers = ['Spieler 1','Spieler 2','Spieler 3'];
+let impMode = 'similar'; // 'similar' | 'none'
+let impCat = 'all';
+let impImpostorIdx = -1;
+let impCurrentPlayer = -1;
+let impCurrentPair = null;
+let impScores = {};
+let impRoundActive = false;
+
+function renderImpPlayers(){
+  const list = document.getElementById('imp-player-list');
+  list.innerHTML = '';
+  impPlayers.forEach((name,i) => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `<input type="text" placeholder="Spieler ${i+1}" value="${name}"
+      oninput="impPlayers[${i}]=this.value;renderImpScoreBoard()">
+      ${impPlayers.length>3 ? `<button class="player-remove" onclick="removeImpPlayer(${i})">×</button>` : ''}`;
+    list.appendChild(row);
+  });
+  renderImpScoreBoard();
+}
+
+function addImpPlayer(){
+  impPlayers.push('Spieler '+(impPlayers.length+1));
+  renderImpPlayers();
+}
+
+function removeImpPlayer(i){
+  if(impPlayers.length<=3) return;
+  impPlayers.splice(i,1);
+  renderImpPlayers();
+}
+
+function setImpMode(mode, btn){
+  impMode = mode;
+  document.querySelectorAll('[id^="imp-mode-"]').forEach(b=>b.classList.remove('active-t'));
+  btn.classList.add('active-t');
+}
+
+function setImpCat(cat, btn){
+  impCat = cat;
+  document.querySelectorAll('[id^="imp-cat-"]').forEach(b=>b.classList.remove('active-t'));
+  btn.classList.add('active-t');
+}
+
+function renderImpScoreBoard(){
+  const board = document.getElementById('imp-score-board');
+  if(!board) return;
+  board.innerHTML = '';
+  impPlayers.forEach((name,i) => {
+    if(!impScores[i]) impScores[i] = 0;
+    const card = document.createElement('div');
+    card.className = 'score-card';
+    card.innerHTML = `<div class="score-name" id="imp-sn-${i}">${name||'Spieler '+(i+1)}</div>
+      <div class="score-val" id="imp-sc-${i}">${impScores[i]}</div>
+      <div class="score-controls">
+        <button class="sc-btn" onclick="changeScore('imp-sc-${i}',-1)">−</button>
+        <button class="sc-btn" onclick="changeScore('imp-sc-${i}',1)">+</button>
+      </div>`;
+    board.appendChild(card);
+  });
+}
+
+function resetImpScores(){
+  impScores = {};
+  renderImpScoreBoard();
+}
+
+function startImpRound(){
+  if(impPlayers.length < 3){ alert('Mindestens 3 Spieler benötigt!'); return; }
+  const pool = impostorWordPairs[impCat];
+  impCurrentPair = pool[Math.floor(Math.random()*pool.length)];
+  impImpostorIdx = Math.floor(Math.random()*impPlayers.length);
+  impCurrentPlayer = 0;
+  impRoundActive = true;
+
+  // Reset UI
+  document.getElementById('imp-card-flip').classList.remove('flipped');
+  document.getElementById('imp-next-btn').disabled = true;
+  document.getElementById('imp-reveal-panel').style.display = 'none';
+  document.getElementById('imp-result').textContent = '';
+  renderImpProgress();
+  renderImpTurn();
+
+  // Prepopulate real word display (hidden until reveal)
+  document.getElementById('imp-real-word').textContent = impCurrentPair.real;
+  document.getElementById('imp-fake-word').textContent = impMode==='none' ? '(kein Wort)' : impCurrentPair.fake;
+}
+
+function renderImpProgress(){
+  const prog = document.getElementById('imp-progress');
+  prog.innerHTML = '';
+  impPlayers.forEach((name,i) => {
+    const pip = document.createElement('div');
+    pip.className = 'imp-pip' + (i<impCurrentPlayer?' done':i===impCurrentPlayer?' current':'');
+    pip.textContent = (i<impCurrentPlayer) ? '✓' : (i+1);
+    pip.title = name||'Spieler '+(i+1);
+    prog.appendChild(pip);
+  });
+}
+
+function renderImpTurn(){
+  const name = impPlayers[impCurrentPlayer] || 'Spieler '+(impCurrentPlayer+1);
+  document.getElementById('imp-turn').textContent = `👤 ${name} – Karte aufdecken!`;
+  // Reset card flip
+  const flip = document.getElementById('imp-card-flip');
+  flip.classList.remove('flipped');
+  document.getElementById('imp-next-btn').disabled = true;
+}
+
+function impCardFlip(){
+  if(!impRoundActive || impCurrentPlayer >= impPlayers.length) return;
+  const flip = document.getElementById('imp-card-flip');
+  if(flip.classList.contains('flipped')) return; // already revealed
+  flip.classList.add('flipped');
+
+  const isImpostor = impCurrentPlayer === impImpostorIdx;
+  const back = document.getElementById('imp-card-back');
+  const roleLabel = document.getElementById('imp-role-label');
+  const wordLabel = document.getElementById('imp-word-label');
+
+  back.className = 'imp-card-back ' + (isImpostor ? 'is-impostor' : 'is-civilian');
+  if(isImpostor){
+    roleLabel.textContent = '🕵️ Du bist der IMPOSTOR!';
+    wordLabel.textContent = impMode==='none' ? '???' : impCurrentPair.fake;
+  } else {
+    roleLabel.textContent = '✅ Zivilist';
+    wordLabel.textContent = impCurrentPair.real;
+  }
+  document.getElementById('imp-next-btn').disabled = false;
+}
+
+function impNextPlayer(){
+  impCurrentPlayer++;
+  if(impCurrentPlayer >= impPlayers.length){
+    // All done – show voting
+    document.getElementById('imp-turn').textContent = '💬 Alle haben ihre Karte gesehen – jetzt beschreiben & abstimmen!';
+    document.getElementById('imp-next-btn').disabled = true;
+    document.getElementById('imp-card-flip').classList.remove('flipped');
+    document.getElementById('imp-card-back').className = 'imp-card-back';
+    document.getElementById('imp-role-label').textContent = '–';
+    document.getElementById('imp-word-label').textContent = '–';
+    showImpVoting();
+  } else {
+    renderImpProgress();
+    renderImpTurn();
+  }
+}
+
+function showImpVoting(){
+  const panel = document.getElementById('imp-reveal-panel');
+  panel.style.display = 'block';
+  const grid = document.getElementById('imp-vote-grid');
+  grid.innerHTML = '';
+  impPlayers.forEach((name,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'imp-vote-btn';
+    btn.textContent = name || 'Spieler '+(i+1);
+    btn.onclick = () => impVote(i, btn);
+    grid.appendChild(btn);
+  });
+  document.getElementById('imp-result').textContent = '';
+}
+
+function impVote(idx, btn){
+  // Toggle selection
+  document.querySelectorAll('.imp-vote-btn').forEach(b=>b.classList.remove('voted'));
+  btn.classList.add('voted');
+  const correct = idx === impImpostorIdx;
+  const impostorName = impPlayers[impImpostorIdx] || 'Spieler '+(impImpostorIdx+1);
+  const resultEl = document.getElementById('imp-result');
+  if(correct){
+    resultEl.textContent = `✅ Richtig! ${impostorName} war der Impostor!`;
+    resultEl.style.color = 'var(--accent-g)';
+  } else {
+    resultEl.textContent = `❌ Falsch! ${impostorName} war der Impostor und entwischt! (+2 Punkte)`;
+    resultEl.style.color = 'var(--accent-r)';
+    // Award impostor 2 points
+    const sc = document.getElementById('imp-sc-'+impImpostorIdx);
+    if(sc) sc.textContent = Math.max(0,(parseInt(sc.textContent)||0)+2);
+  }
+  document.getElementById('imp-reveal-word-row').style.display = 'block';
+  impRoundActive = false;
+}
+
+// Init
+renderImpPlayers();
+renderImpScoreBoard();
+
+// ── TABS ──
+function switchTab(id){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+id));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
+
+// ── ACCORDION ──
+function toggleSection(head){ head.parentElement.classList.toggle('open'); }
+
+// ── CANVAS ──
+(function(){
+  const canvas=document.getElementById('drawCanvas');
+  const ctx=canvas.getContext('2d');
+  let drawing=false, tool='pen', color='#1a1a2e', brushSize=4, lastX=0, lastY=0;
+  function resizeCanvas(){ canvas.style.width=Math.min(760,canvas.parentElement.clientWidth)+'px'; canvas.style.height=(Math.min(760,canvas.parentElement.clientWidth)*400/760)+'px'; }
+  resizeCanvas(); window.addEventListener('resize',resizeCanvas);
+  function getPos(e){ const r=canvas.getBoundingClientRect(); const sx=canvas.width/r.width,sy=canvas.height/r.height; const s=e.touches?e.touches[0]:e; return{x:(s.clientX-r.left)*sx,y:(s.clientY-r.top)*sy}; }
+  function startDraw(e){ drawing=true; const p=getPos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
+  function draw(e){ if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.strokeStyle=tool==='eraser'?'#ffffff':color; ctx.lineWidth=tool==='eraser'?brushSize*4:brushSize; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke(); lastX=p.x; lastY=p.y; }
+  function stopDraw(){ drawing=false; }
+  canvas.addEventListener('mousedown',startDraw); canvas.addEventListener('mousemove',draw); canvas.addEventListener('mouseup',stopDraw); canvas.addEventListener('mouseleave',stopDraw);
+  canvas.addEventListener('touchstart',startDraw,{passive:false}); canvas.addEventListener('touchmove',draw,{passive:false}); canvas.addEventListener('touchend',stopDraw);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  window.setColor=function(el){ color=el.dataset.color; tool='pen'; document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); document.getElementById('pen-btn').classList.add('active'); document.getElementById('eraser-btn').classList.remove('active'); };
+  window.setTool=function(t){ tool=t; document.getElementById('pen-btn').classList.toggle('active',t==='pen'); document.getElementById('eraser-btn').classList.toggle('active',t==='eraser'); };
+  window.clearCanvas=function(){ ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height); };
+  window.updateBrush=function(v){ brushSize=parseInt(v); };
+})();
+</script>
+</body>
+</html>
